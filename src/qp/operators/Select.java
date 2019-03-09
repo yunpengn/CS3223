@@ -11,7 +11,7 @@ public class Select extends Operator{
 
     Operator base;  // base operator
       Condition con; //select condition
-	int batchsize;  // number of tuples per outbatch
+	int batchsize;  // number of tuples per outBatch
 
     /** The following fields are required during
      ** execution of the select operator
@@ -123,7 +123,7 @@ public class Select extends Operator{
 	    else
 		start = i;
 
-	    //  return outbatch;
+	    //  return outBatch;
 	}
 	return outbatch;
     }

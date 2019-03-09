@@ -58,7 +58,9 @@ public class Operator {
     }
 
     /**
-     * @return whether this operator is open.
+     * Opens the operator.
+     *
+     * @return true when the operator is open successfully.
      */
     public boolean open() {
         return true;
@@ -73,7 +75,9 @@ public class Operator {
     }
 
     /**
-     * @return whether this operator is close.
+     * Closes the operator.
+     *
+     * @return true when the operator is closed successfully.
      */
     public boolean close() {
         return true;

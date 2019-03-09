@@ -13,7 +13,7 @@ public class Project extends Operator{
 
     Operator base;
     Vector attrSet;
-	int batchsize;  // number of tuples per outbatch
+	int batchsize;  // number of tuples per outBatch
 
 
     /** The following fields are requied during execution
