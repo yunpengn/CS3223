@@ -20,7 +20,7 @@ import qp.utils.Schema;
 import qp.utils.Tuple;
 
 /**
- * This is main driver program of the query processor
+ * This is main driver program of the query processor.
  */
 public class QueryMain {
     // A writer for output file.
