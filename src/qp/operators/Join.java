@@ -6,7 +6,7 @@ package qp.operators;
 import qp.utils.Condition;
 import qp.utils.Schema;
 
-public class Join extends Operator{
+public class Join extends Operator {
 
     Operator left;   // left child
     Operator right;   // right child
@@ -82,12 +82,13 @@ public class Join extends Operator{
 	return con;
     }
 
+    @Override
     public Object clone(){
 	Operator newleft = (Operator) left.clone();
 	Operator newright =(Operator) right.clone();
 	Condition newcond = (Condition) con.clone();
 
-	Join jn = new Join(newleft,newright,newcond,optype);
+	Join jn = new Join(newleft,newright,newcond, opType);
 	Schema newsche = newleft.getSchema().joinWith(newright.getSchema());
 	jn.setSchema(newsche);
 	jn.setJoinType(jointype);

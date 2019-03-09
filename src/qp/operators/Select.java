@@ -229,10 +229,11 @@ public class Select extends Operator{
 
 
 
-    public Object clone(){
+    @Override
+	public Object clone(){
 	Operator newbase = (Operator) base.clone();
 	Condition newcon = (Condition) con.clone();
-	Select newsel = new Select(newbase,newcon,optype);
+	Select newsel = new Select(newbase,newcon, opType);
 	newsel.setSchema(newbase.getSchema());
 	return newsel;
     }

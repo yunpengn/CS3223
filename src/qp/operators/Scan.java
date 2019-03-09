@@ -117,9 +117,10 @@ public class Scan extends Operator {
     }
 
 
-    public Object clone(){
+    @Override
+	public Object clone(){
 	String newtab = tabname;
-	Scan newscan = new Scan(newtab,optype);
+	Scan newscan = new Scan(newtab, opType);
 	newscan.setSchema((Schema) schema.clone());
 	return newscan;
     }

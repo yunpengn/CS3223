@@ -130,12 +130,13 @@ public class Project extends Operator{
     }
 
 
-    public Object clone(){
+    @Override
+	public Object clone(){
 	Operator newbase = (Operator) base.clone();
 	Vector newattr = new Vector();
 	for(int i=0;i<attrSet.size();i++)
 	    newattr.add((Attribute) ((Attribute)attrSet.elementAt(i)).clone());
-	Project newproj = new Project(newbase,newattr,optype);
+	Project newproj = new Project(newbase,newattr, opType);
 	Schema newSchema = newbase.getSchema().subSchema(newattr);
 	newproj.setSchema(newSchema);
 	return newproj;
