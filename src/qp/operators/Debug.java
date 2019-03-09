@@ -126,7 +126,7 @@ public class Debug {
                 System.out.print(")");
                 break;
             case OpType.SCAN:
-                System.out.print(((Scan) node).getTabName());
+                System.out.print(((Scan) node).getTableName());
                 break;
         }
     }
