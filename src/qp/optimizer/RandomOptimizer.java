@@ -393,7 +393,7 @@ public class RandomOptimizer{
 	}else if(node.getOpType()==OpType.PROJECT){
 	    Operator base = ((Project)node).getBase();
 	    modifySchema(base);
-	    Vector attrlist = ((Project)node).getProjAttr();
+	    Vector attrlist = ((Project)node).getProjectAttr();
 	    node.setSchema(base.getSchema().subSchema(attrlist));
 	}
     }

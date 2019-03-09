@@ -1,5 +1,3 @@
-/** To projec out the required attributes from the result **/
-
 package qp.operators;
 
 import java.util.Vector;
@@ -9,44 +7,64 @@ import qp.utils.Batch;
 import qp.utils.Schema;
 import qp.utils.Tuple;
 
-public class Project extends Operator{
-
+/**
+ * Defines the project operator, which projects out the required attributes from the
+ * result.
+ */
+public class Project extends Operator {
+    // The base operator
     Operator base;
-    Vector attrSet;
-	int batchsize;  // number of tuples per outBatch
+    // The set of attributes
+    private Vector attrSet;
+    // The number of tuples per outBatch
+    private int batchSize;
 
+    // The input buffer
+    private Batch inBatch;
+    // The output buffer
+    private Batch outBatch;
 
-    /** The following fields are requied during execution
-     ** of the Project Operator
-     **/
+    // The index of the attributes in the base operator that are to be projected
+    private int[] attrIndex;
 
-    Batch inbatch;
-    Batch outbatch;
-
-    /** index of the attributes in the base operator
-     ** that are to be projected
-     **/
-
-    int[] attrIndex;
-
-
-    public Project(Operator base, Vector as,int type){
-	super(type);
-	this.base=base;
-	this.attrSet=as;
-
+    /**
+     * Creates a new project operator.
+     *
+     * @param base is the base operator
+     * @param attrSet is the set of attributes
+     * @param type is the type of the operator (i.e., PROJECT)
+     */
+    public Project(Operator base, Vector attrSet, int type) {
+        super(type);
+        this.base = base;
+        this.attrSet = attrSet;
     }
 
-    public void setBase(Operator base){
-	this.base = base;
+    /**
+     * Setter for base.
+     *
+     * @param base is the base operator.
+     */
+    public void setBase(Operator base) {
+        this.base = base;
     }
 
-    public Operator getBase(){
-	return base;
+    /**
+     * Getter for base.
+     *
+     * @return the base operator.
+     */
+    public Operator getBase() {
+        return base;
     }
 
-    public Vector getProjAttr(){
-	return attrSet;
+    /**
+     * Getter for attrSet.
+     *
+     * @return a vector containing all attributes.
+     */
+    public Vector getProjectAttr() {
+        return attrSet;
     }
 
     /** Opens the connection to the base operator
@@ -54,91 +72,87 @@ public class Project extends Operator{
      ** projected from the base operator
      **/
 
-    public boolean open(){
-	/** setnumber of tuples per batch **/
-	int tuplesize = schema.getTupleSize();
-	batchsize=Batch.getPageSize()/tuplesize;
+    public boolean open() {
+        /** setnumber of tuples per batch **/
+        int tuplesize = schema.getTupleSize();
+        batchSize = Batch.getPageSize() / tuplesize;
 
 
-	/** The followingl loop findouts the index of the columns that
-	 ** are required from the base operator
-	 **/
+        /** The followingl loop findouts the index of the columns that
+         ** are required from the base operator
+         **/
 
-	Schema baseSchema = base.getSchema();
-	attrIndex = new int[attrSet.size()];
-	//System.out.println("Project---Schema: ----------in open-----------");
-	//System.out.println("base Schema---------------");
-	//Debug.PPrint(baseSchema);
-	for(int i=0;i<attrSet.size();i++){
-	    Attribute attr = (Attribute) attrSet.elementAt(i);
-  	    int index = baseSchema.indexOf(attr);
-	    attrIndex[i]=index;
+        Schema baseSchema = base.getSchema();
+        attrIndex = new int[attrSet.size()];
+        //System.out.println("Project---Schema: ----------in open-----------");
+        //System.out.println("base Schema---------------");
+        //Debug.PPrint(baseSchema);
+        for (int i = 0; i < attrSet.size(); i++) {
+            Attribute attr = (Attribute) attrSet.elementAt(i);
+            int index = baseSchema.indexOf(attr);
+            attrIndex[i] = index;
 
-	    //  Debug.PPrint(attr);
-	    //System.out.println("  "+index+"  ");
-	}
+            //  Debug.PPrint(attr);
+            //System.out.println("  "+index+"  ");
+        }
 
-	if(base.open())
-	    return true;
-	else
-	    return false;
+        if (base.open())
+            return true;
+        else
+            return false;
     }
 
-    /** Read next tuple from operator */
+    /**
+     * @return the next page of tuples produced by the project operator.
+     */
+    public Batch next() {
+        // Creates a new output buffer.
+        outBatch = new Batch(batchSize);
 
-    public Batch next(){
-	//System.out.println("Project:-----------------in next-----------------");
-	outbatch = new Batch(batchsize);
+        // Returns empty if the input buffer is empty.
+        inBatch = base.next();
+        if (inBatch == null) {
+            return null;
+        }
 
-	/** all the tuples in the inbuffer goes to the output
-	    buffer
-	**/
+        for (int i = 0; i < inBatch.size(); i++) {
+            // Goes through each required attribute.
+            Tuple baseTuple = inBatch.elementAt(i);
+            Vector<Object> present = new Vector<>();
+            for (int j = 0; j < attrSet.size(); j++) {
+                Object data = baseTuple.dataAt(attrIndex[j]);
+                present.add(data);
+            }
 
-	inbatch = base.next();
-	// System.out.println("Project:-------------- inside the next---------------");
+            Tuple outTuple = new Tuple(present);
+            outBatch.add(outTuple);
+        }
 
-
-	if(inbatch == null){
-	    return null;
-	}
-	//System.out.println("Project:---------------base tuples---------");
-	for(int i=0;i<inbatch.size();i++){
-	    Tuple basetuple = inbatch.elementAt(i);
-	    //Debug.PPrint(basetuple);
-	    //System.out.println();
-	    Vector present = new Vector();
-	    for(int j=0;j<attrSet.size();j++){
-		Object data = basetuple.dataAt(attrIndex[j]);
-		present.add(data);
-	    }
-	    Tuple outtuple = new Tuple(present);
-	    outbatch.add(outtuple);
-	}
-	return outbatch;
+        return outBatch;
     }
 
-
-    /** Close the operator */
-    public boolean close(){
-		return true;
-		/*
-	if(base.close())
-	    return true;
-	else
-	    return false;
-	    **/
+    /**
+     * Closes the operator.
+     *
+     * @return true if the operator is closed successfully.
+     */
+    @Override
+    public boolean close() {
+        return true;
+        // return base.close();
     }
-
 
     @Override
-	public Object clone(){
-	Operator newbase = (Operator) base.clone();
-	Vector newattr = new Vector();
-	for(int i=0;i<attrSet.size();i++)
-	    newattr.add((Attribute) ((Attribute)attrSet.elementAt(i)).clone());
-	Project newproj = new Project(newbase,newattr, opType);
-	Schema newSchema = newbase.getSchema().subSchema(newattr);
-	newproj.setSchema(newSchema);
-	return newproj;
+    public Object clone() {
+        Operator newBase = (Operator) base.clone();
+        Vector newAttrSet = new Vector();
+        for (int i = 0; i < attrSet.size(); i++) {
+            newAttrSet.add(((Attribute) attrSet.elementAt(i)).clone());
+        }
+
+        Project newProject = new Project(newBase, newAttrSet, opType);
+        Schema newSchema = newBase.getSchema().subSchema(newAttrSet);
+        newProject.setSchema(newSchema);
+        return newProject;
     }
 }
