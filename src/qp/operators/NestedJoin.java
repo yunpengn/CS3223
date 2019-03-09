@@ -42,8 +42,8 @@ public class NestedJoin extends Join{
     public NestedJoin(Join jn){
 	super(jn.getLeft(),jn.getRight(),jn.getCondition(),jn.getOpType());
 	schema = jn.getSchema();
-	jointype = jn.getJoinType();
-	numBuff = jn.getNumBuff();
+	joinType = jn.getJoinType();
+	numOfBuffer = jn.getNumOfBuffer();
     }
 
 

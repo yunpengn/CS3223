@@ -418,7 +418,7 @@ public class RandomOptimizer{
 		NestedJoin nj = new NestedJoin((Join) node);
 		nj.setLeft(left);
 		nj.setRight(right);
-		nj.setNumBuff(numbuff);
+		nj.setNumOfBuffer(numbuff);
 		return nj;
 
 	    /** Temporarity used simple nested join,
