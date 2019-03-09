@@ -424,19 +424,19 @@ public class RandomOptimizer{
 	    /** Temporarity used simple nested join,
 	    	replace with hasjoin, if implemented **/
 
-	    case JoinType.BLOCKNESTED:
+	    case JoinType.BLOCK_NESTED:
 
 		NestedJoin bj = new NestedJoin((Join) node);
                 /* + other code */
 		return bj;
 
-	    case JoinType.SORTMERGE:
+	    case JoinType.SORT_MERGE:
 
 		NestedJoin sm = new NestedJoin((Join) node);
                 /* + other code */
 		return sm;
 
-	    case JoinType.HASHJOIN:
+	    case JoinType.HASH_JOIN:
 
 		NestedJoin hj = new NestedJoin((Join) node);
                 /* + other code */
