@@ -1,6 +1,6 @@
 package qp.parser;
-import java_cup.runtime.Symbol;  // definition of scanner/parser interface
-import java.util.*;
+
+import java_cup.runtime.Symbol;
 
 
 public class Scaner implements java_cup.runtime.Scanner {

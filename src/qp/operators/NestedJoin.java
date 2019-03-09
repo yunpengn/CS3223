@@ -2,10 +2,17 @@
 
 package qp.operators;
 
-import qp.utils.*;
-import java.io.*;
-import java.util.*;
-import java.lang.*;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+import qp.utils.Attribute;
+import qp.utils.Batch;
+import qp.utils.Tuple;
 
 public class NestedJoin extends Join{
 

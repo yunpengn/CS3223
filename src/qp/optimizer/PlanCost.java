@@ -3,12 +3,23 @@
 
 package qp.optimizer;
 
-import qp.operators.*;
-import qp.utils.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
-import java.util.Enumeration;
-import java.io.*;
+
+import qp.operators.Join;
+import qp.operators.JoinType;
+import qp.operators.OpType;
+import qp.operators.Operator;
+import qp.operators.Project;
+import qp.operators.Scan;
+import qp.operators.Select;
+import qp.utils.Attribute;
+import qp.utils.Batch;
+import qp.utils.Condition;
+import qp.utils.Schema;
 public class PlanCost{
 
     int cost;

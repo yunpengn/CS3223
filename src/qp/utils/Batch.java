@@ -2,8 +2,8 @@
 
 package qp.utils;
 
-import java.util.Vector;
 import java.io.Serializable;
+import java.util.Vector;
 
 public class Batch implements Serializable{
 

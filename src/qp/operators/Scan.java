@@ -3,9 +3,14 @@
 
 package qp.operators;
 
-import qp.utils.*;
-import java.io.*;
-import java.util.Vector;
+import java.io.EOFException;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+
+import qp.utils.Batch;
+import qp.utils.Schema;
+import qp.utils.Tuple;
 
 /** Scan operator - read data from a file */
 

@@ -2,8 +2,10 @@
 
 package qp.operators;
 
-import qp.utils.*;
-import java.util.Vector;
+import qp.utils.Attribute;
+import qp.utils.Batch;
+import qp.utils.Condition;
+import qp.utils.Tuple;
 
 public class Select extends Operator{
 

@@ -4,7 +4,8 @@ This is base class for all the operators **/
 
 package qp.operators;
 
-import qp.utils.*;
+import qp.utils.Batch;
+import qp.utils.Schema;
 public class Operator{
 
 

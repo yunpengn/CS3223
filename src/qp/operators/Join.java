@@ -3,8 +3,8 @@
 
 package qp.operators;
 
-import qp.utils.*;
-import java.util.Vector;
+import qp.utils.Condition;
+import qp.utils.Schema;
 
 public class Join extends Operator{
 

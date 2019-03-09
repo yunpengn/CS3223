@@ -7,7 +7,6 @@
 
 package qp.operators;
 
-import qp.utils.*;
 public class JoinType{
 
 
