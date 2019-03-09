@@ -413,7 +413,7 @@ public class RandomOptimizer{
 	    int joinType = ((Join)node).getJoinType();
 	    int numbuff = BufferManager.getBuffersPerJoin();
 	    switch(joinType){
-	    case JoinType.NESTEDJOIN:
+	    case JoinType.NESTED_JOIN:
 
 		NestedJoin nj = new NestedJoin((Join) node);
 		nj.setLeft(left);

@@ -77,6 +77,7 @@ public class NestedJoin extends Join {
         int tupleSize = schema.getTupleSize();
         batchSize = Batch.getPageSize() / tupleSize;
 
+        // Gets the join attribute from left & right table.
         Attribute leftAttr = con.getLhs();
         Attribute rightAttr = (Attribute) con.getRhs();
         leftIndex = left.getSchema().indexOf(leftAttr);
@@ -87,75 +88,67 @@ public class NestedJoin extends Join {
         leftCursor = 0;
         rightCursor = 0;
         eosLeft = false;
-        /** because right stream is to be repetitively scanned
-         ** if it reached end, we have to start new scan
-         **/
+        // Right stream would be repetitively scanned. If it reaches the end, we have to start new scan.
         eosRight = true;
 
         // Materializes the right table for the algorithm to perform.
         if (!right.open()) {
             return false;
         } else {
-            /** If the right operator is not a base table then
-             ** Materialize the intermediate result from right
-             ** into a file
-             **/
-
-            //if(right.getOpType() != OpType.SCAN){
+            /*
+             * If the right operator is not a base table, then materializes the intermediate result
+             * from right into a file.
+             */
+            // if(right.getOpType() != OpType.SCAN){
             fileNum++;
-            rightFileName = "NJtemp-" + String.valueOf(fileNum);
+            rightFileName = "NJtemp-" + fileNum;
             try {
                 ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(rightFileName));
-                while ((rightPage = right.next()) != null) {
+                rightPage = right.next();
+                while (rightPage != null) {
                     out.writeObject(rightPage);
+                    rightPage = right.next();
                 }
                 out.close();
             } catch (IOException io) {
-                System.out.println("NestedJoin:writing the temporay file error");
+                System.out.println("NestedJoin: writing the temporal file error");
                 return false;
             }
-            //}
-            if (!right.close())
+            // }
+
+            if (!right.close()) {
                 return false;
+            }
+
         }
-        if (left.open())
-            return true;
-        else
-            return false;
+        return left.open();
     }
 
-
     /**
-     * from input buffers selects the tuples satisfying join condition
-     * * And returns a page of output tuples
-     **/
-
-
+     * Selects tuples satisfying the join condition from input buffers and returns.
+     *
+     * @return the next page of output tuples.
+     */
     @Override
     public Batch next() {
-        //System.out.print("NestedJoin:--------------------------in next----------------");
-        //Debug.PPrint(con);
-        //System.out.println();
-        int i, j;
+        // Returns empty if the left table reaches end-of-stream.
         if (eosLeft) {
             close();
             return null;
         }
+
         outBatch = new Batch(batchSize);
-
-
         while (!outBatch.isFull()) {
-
-            if (leftCursor == 0 && eosRight == true) {
-                /** new left page is to be fetched**/
-                leftBatch = (Batch) left.next();
+            // Checks whether we need to read a new page from the left table.
+            if (leftCursor == 0 && eosRight) {
+                // Fetches a new page from left table.
+                leftBatch = left.next();
                 if (leftBatch == null) {
                     eosLeft = true;
                     return outBatch;
                 }
-                /** Whenver a new left page came , we have to start the
-                 ** scanning of right table
-                 **/
+
+                // Starts the scanning of right table whenever a new left page comes.
                 try {
 
                     in = new ObjectInputStream(new FileInputStream(rightFileName));
@@ -167,37 +160,40 @@ public class NestedJoin extends Join {
 
             }
 
+            // Continuously probe the right table until we hit the end-of-stream.
             while (!eosRight) {
-
                 try {
-                    if (rightCursor == 0 && leftCursor == 0) {
+                    if (leftCursor == 0 && rightCursor == 0) {
                         rightBatch = (Batch) in.readObject();
                     }
 
-                    for (i = leftCursor; i < leftBatch.size(); i++) {
-                        for (j = rightCursor; j < rightBatch.size(); j++) {
-                            Tuple lefttuple = leftBatch.elementAt(i);
-                            Tuple righttuple = rightBatch.elementAt(j);
-                            if (lefttuple.checkJoin(righttuple, leftIndex, rightIndex)) {
-                                Tuple outtuple = lefttuple.joinWith(righttuple);
+                    for (int i = leftCursor; i < leftBatch.size(); i++) {
+                        for (int j = rightCursor; j < rightBatch.size(); j++) {
+                            Tuple leftTuple = leftBatch.elementAt(i);
+                            Tuple rightTuple = rightBatch.elementAt(j);
 
-                                //Debug.PPrint(outtuple);
-                                //System.out.println();
-                                outBatch.add(outtuple);
+                            // Adds the tuple if satisfying the join condition.
+                            if (leftTuple.checkJoin(rightTuple, leftIndex, rightIndex)) {
+                                Tuple outTuple = leftTuple.joinWith(rightTuple);
+                                outBatch.add(outTuple);
+
+                                // Checks whether the output buffer is full.
                                 if (outBatch.isFull()) {
-                                    if (i == leftBatch.size() - 1 && j == rightBatch.size() - 1) {//case 1
+                                    if (i == leftBatch.size() - 1 && j == rightBatch.size() - 1) {
                                         leftCursor = 0;
                                         rightCursor = 0;
-                                    } else if (i != leftBatch.size() - 1 && j == rightBatch.size() - 1) {//case 2
+                                    } else if (i != leftBatch.size() - 1 && j == rightBatch.size() - 1) {
                                         leftCursor = i + 1;
                                         rightCursor = 0;
-                                    } else if (i == leftBatch.size() - 1 && j != rightBatch.size() - 1) {//case 3
+                                    } else if (i == leftBatch.size() - 1 && j != rightBatch.size() - 1) {
                                         leftCursor = i;
                                         rightCursor = j + 1;
                                     } else {
                                         leftCursor = i;
                                         rightCursor = j + 1;
                                     }
+
+                                    // Returns since we have already produced a complete page of matching tuples.
                                     return outBatch;
                                 }
                             }
@@ -209,14 +205,14 @@ public class NestedJoin extends Join {
                     try {
                         in.close();
                     } catch (IOException io) {
-                        System.out.println("NestedJoin:Error in temporary file reading");
+                        System.out.println("NestedJoin: error in temporary file reading");
                     }
                     eosRight = true;
                 } catch (ClassNotFoundException c) {
-                    System.out.println("NestedJoin:Some error in deserialization ");
+                    System.out.println("NestedJoin: some error in deserialization");
                     System.exit(1);
                 } catch (IOException io) {
-                    System.out.println("NestedJoin:temporary file reading error");
+                    System.out.println("NestedJoin: temporary file reading error");
                     System.exit(1);
                 }
             }

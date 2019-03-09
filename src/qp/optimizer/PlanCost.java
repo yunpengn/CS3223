@@ -153,7 +153,7 @@ public class PlanCost{
 	//System.out.println("PlanCost: jointype="+joinType);
 
 	switch(joinType){
-	case JoinType.NESTEDJOIN:
+	case JoinType.NESTED_JOIN:
 	    joincost = leftpages*rightpages;
 	    break;
 	case JoinType.BLOCK_NESTED:
