@@ -32,6 +32,19 @@ This repository presents our approach to this project. We are a team of 3 underg
 		- Mark `testcases` folder as `Resources`.
 - Run `build.bat` (Windows) or `build.sh` (macOS or Linux) to build the project.
 
+## Development Workflow
+
+- We follow the [feature branch workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow)
+    - That means, you should NOT fork this repository. Instead, create a new branch and work on it.
+- Every single line of code must be reviewed by someone else.
+    - Whenever you create a PR, assign it to yourself and request review from someone else.
+    - After a PR is merged, delete the branch immediately (using the button on the page of that PR so that it is possible to revert later, do NOT delete it manually).
+- Follow the normal coding styles. You should especially pay attention to the following aspects:
+    - Never use wildcard import. Only import the classes you need;
+    - Every class & method should have a header comment using valid syntax of [JavaDoc](https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html);
+    - Each indentation level should 4 spaces (rather than tab);
+    - Use logging if necessary (for this project, we would use `System.out.println` & `System.err.println` for simplicity).
+
 ## References
 
 - [CS3223 Module Website](https://www.comp.nus.edu.sg/~tankl/cs3223)

@@ -3,13 +3,25 @@
 
 package qp.optimizer;
 
-import qp.utils.*;
-import qp.operators.*;
-import java.util.Vector;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 import java.util.BitSet;
-import java.util.Hashtable;
 import java.util.Enumeration;
-import java.io.*;
+import java.util.Hashtable;
+import java.util.Vector;
+
+import qp.operators.Join;
+import qp.operators.JoinType;
+import qp.operators.OpType;
+import qp.operators.Operator;
+import qp.operators.Project;
+import qp.operators.Scan;
+import qp.operators.Select;
+import qp.utils.Attribute;
+import qp.utils.Condition;
+import qp.utils.RandNumb;
+import qp.utils.SQLQuery;
+import qp.utils.Schema;
 
 public class RandomInitialPlan{
 

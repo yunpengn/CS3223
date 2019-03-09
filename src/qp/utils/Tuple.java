@@ -2,8 +2,9 @@
  Tuple container class
  **********/
 package qp.utils;
-import java.util.Vector;
+
 import java.io.Serializable;
+import java.util.Vector;
 
 /** Tuple - a simple object which holds a Vector
      of data */

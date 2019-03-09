@@ -4,8 +4,6 @@
 
 package qp.utils;
 
-import java.lang.Math;
-
 public class RandNumb{
 
 

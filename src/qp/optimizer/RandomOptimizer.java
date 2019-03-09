@@ -3,10 +3,20 @@
 
 package qp.optimizer;
 
-import qp.utils.*;
-import qp.operators.*;
-import java.lang.Math;
 import java.util.Vector;
+
+import qp.operators.Debug;
+import qp.operators.Join;
+import qp.operators.JoinType;
+import qp.operators.NestedJoin;
+import qp.operators.OpType;
+import qp.operators.Operator;
+import qp.operators.Project;
+import qp.operators.Select;
+import qp.utils.Attribute;
+import qp.utils.Condition;
+import qp.utils.RandNumb;
+import qp.utils.SQLQuery;
 
 public class RandomOptimizer{
 

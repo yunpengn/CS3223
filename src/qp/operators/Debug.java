@@ -2,7 +2,11 @@
 
 package qp.operators;
 
-import qp.utils.*;
+import qp.utils.Attribute;
+import qp.utils.Batch;
+import qp.utils.Condition;
+import qp.utils.Schema;
+import qp.utils.Tuple;
 
 public class Debug{
 

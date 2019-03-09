@@ -2,8 +2,12 @@
 
 package qp.operators;
 
-import qp.utils.*;
 import java.util.Vector;
+
+import qp.utils.Attribute;
+import qp.utils.Batch;
+import qp.utils.Schema;
+import qp.utils.Tuple;
 
 public class Project extends Operator{
 
