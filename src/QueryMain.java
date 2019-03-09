@@ -24,96 +24,92 @@ import qp.utils.Tuple;
  */
 public class QueryMain {
 
-	static PrintWriter out;
-	static int numAtts;
+    static PrintWriter out;
+    static int numAtts;
 
-	public static void main(String[] args){
+    public static void main(String[] args) {
 
-		if(args.length !=2){
-			System.out.println("usage: java QueryMain <queryfilename> <resultfile>");
-			System.exit(1);
-		}
-
-
-		/** Enter the number of bytes per page **/
-
-		System.out.println("enter the number of bytes per page");
-		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-		String temp;
-		try {
-			temp = in.readLine();
-			int pagesize = Integer.parseInt(temp);
-			Batch.setPageSize(pagesize);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        if (args.length != 2) {
+            System.out.println("usage: java QueryMain <queryfilename> <resultfile>");
+            System.exit(1);
+        }
 
 
+        /** Enter the number of bytes per page **/
+
+        System.out.println("enter the number of bytes per page");
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+        String temp;
+        try {
+            temp = in.readLine();
+            int pagesize = Integer.parseInt(temp);
+            Batch.setPageSize(pagesize);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
 
-		String queryfile = args[0];
-		String resultfile = args[1];
-		FileInputStream source = null;
-		try{
-			source = new FileInputStream(queryfile);
-		}catch(FileNotFoundException ff){
-			System.out.println("File not found: "+queryfile);
-			System.exit(1);
-		}
+        String queryfile = args[0];
+        String resultfile = args[1];
+        FileInputStream source = null;
+        try {
+            source = new FileInputStream(queryfile);
+        } catch (FileNotFoundException ff) {
+            System.out.println("File not found: " + queryfile);
+            System.exit(1);
+        }
 
 
-		/** scan the query **/
+        /** scan the query **/
 
-		Scaner sc = new Scaner(source);
-		parser p = new parser();
-		p.setScanner(sc);
-
-
-		/** parse the query **/
-
-		try{
-			p.parse();
-		}catch(Exception e){
-			System.out.println("Exception occured while parsing");
-			System.exit(1);
-		}
-
-		/** SQLQuery is the result of the parsing **/
-
-		SQLQuery sqlquery = p.getSQLQuery();
-		int numJoin = sqlquery.getNumJoin();
+        Scaner sc = new Scaner(source);
+        parser p = new parser();
+        p.setScanner(sc);
 
 
-		/** If there are joins then assigns buffers to each join operator
-		 while preparing the plan
-		 **/
-		/** As buffer manager is not implemented, just input the number of
-		 buffers available
-		 **/
+        /** parse the query **/
+
+        try {
+            p.parse();
+        } catch (Exception e) {
+            System.out.println("Exception occured while parsing");
+            System.exit(1);
+        }
+
+        /** SQLQuery is the result of the parsing **/
+
+        SQLQuery sqlquery = p.getSQLQuery();
+        int numJoin = sqlquery.getNumJoin();
 
 
-		if(numJoin !=0){
-			System.out.println("enter the number of buffers available");
-
-			try {
-				temp = in.readLine();
-				int numBuff = Integer.parseInt(temp);
-				BufferManager bm = new BufferManager(numBuff,numJoin);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+        /** If there are joins then assigns buffers to each join operator
+         while preparing the plan
+         **/
+        /** As buffer manager is not implemented, just input the number of
+         buffers available
+         **/
 
 
+        if (numJoin != 0) {
+            System.out.println("enter the number of buffers available");
 
-		/** Let check the number of buffers available is enough or not **/
+            try {
+                temp = in.readLine();
+                int numBuff = Integer.parseInt(temp);
+                BufferManager bm = new BufferManager(numBuff, numJoin);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
-		int numBuff = BufferManager.getBuffersPerJoin();
-		if(numJoin>0 && numBuff<3){
-			System.out.println("Minimum 3 buffers are required per a join operator ");
-			System.exit(1);
-		}
 
+        /** Let check the number of buffers available is enough or not **/
+
+        int numBuff = BufferManager.getBuffersPerJoin();
+        if (numJoin > 0 && numBuff < 3) {
+            System.out.println("Minimum 3 buffers are required per a join operator ");
+            System.exit(1);
+        }
 
 
 /** This part is used When some random initial plan is required instead of comple optimized plan **/
@@ -129,109 +125,105 @@ public class QueryMain {
  **/
 
 
-		/** Use random Optimization algorithm to get a random optimized
-		 execution plan
-		 **/
+        /** Use random Optimization algorithm to get a random optimized
+         execution plan
+         **/
 
-		RandomOptimizer ro = new RandomOptimizer(sqlquery);
-		Operator logicalroot = ro.getOptimizedPlan();
-		if(logicalroot==null){
-			System.out.println("root is null");
-			System.exit(1);
-		}
+        RandomOptimizer ro = new RandomOptimizer(sqlquery);
+        Operator logicalroot = ro.getOptimizedPlan();
+        if (logicalroot == null) {
+            System.out.println("root is null");
+            System.exit(1);
+        }
 
 
+        /** preparing the execution plan **/
 
-		/** preparing the execution plan **/
-
-		Operator root = RandomOptimizer.makeExecPlan(logicalroot);
+        Operator root = RandomOptimizer.makeExecPlan(logicalroot);
 
 /** Print final Plan **/
-		System.out.println("----------------------Execution Plan----------------");
-		Debug.PPrint(root);
-		System.out.println();
+        System.out.println("----------------------Execution Plan----------------");
+        Debug.PPrint(root);
+        System.out.println();
 
 
 /** Ask user whether to continue execution of the program **/
 
-		System.out.println("enter 1 to continue, 0 to abort ");
+        System.out.println("enter 1 to continue, 0 to abort ");
 
 
-		try {
-			temp = in.readLine();
-			int flag = Integer.parseInt(temp);
-			if(flag==0){
-				System.exit(1);
-			}
+        try {
+            temp = in.readLine();
+            int flag = Integer.parseInt(temp);
+            if (flag == 0) {
+                System.exit(1);
+            }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-		long starttime = System.currentTimeMillis();
-
-
-
-		if(root.open()==false){
-			System.out.println("Root: Error in opening of root");
-			System.exit(1);
-		}
-		try{
-			out = new PrintWriter(new BufferedWriter(new FileWriter(resultfile)));
-		}catch(IOException io){
-			System.out.println("QueryMain:error in opening result file: "+resultfile);
-			System.exit(1);
-		}
+        long starttime = System.currentTimeMillis();
 
 
+        if (root.open() == false) {
+            System.out.println("Root: Error in opening of root");
+            System.exit(1);
+        }
+        try {
+            out = new PrintWriter(new BufferedWriter(new FileWriter(resultfile)));
+        } catch (IOException io) {
+            System.out.println("QueryMain:error in opening result file: " + resultfile);
+            System.exit(1);
+        }
 
 
-		/** print the schema of the result **/
-		Schema schema = root.getSchema();
-		numAtts = schema.getNumCols();
-		printSchema(schema);
-		Batch resultbatch;
+        /** print the schema of the result **/
+        Schema schema = root.getSchema();
+        numAtts = schema.getNumCols();
+        printSchema(schema);
+        Batch resultbatch;
 
 
-		/** print each tuple in the result **/
+        /** print each tuple in the result **/
 
 
-		while((resultbatch=root.next())!=null){
-			for(int i=0;i<resultbatch.size();i++){
-				printTuple(resultbatch.elementAt(i));
-			}
-		}
-		root.close();
-		out.close();
+        while ((resultbatch = root.next()) != null) {
+            for (int i = 0; i < resultbatch.size(); i++) {
+                printTuple(resultbatch.elementAt(i));
+            }
+        }
+        root.close();
+        out.close();
 
-		long endtime = System.currentTimeMillis();
-		double executiontime = (endtime - starttime)/1000.0;
-		System.out.println("Execution time = "+ executiontime);
+        long endtime = System.currentTimeMillis();
+        double executiontime = (endtime - starttime) / 1000.0;
+        System.out.println("Execution time = " + executiontime);
 
-	}
+    }
 
 
-	protected static void printTuple(Tuple t){
-		for(int i=0;i<numAtts;i++){
-			Object data = t.dataAt(i);
-			if(data instanceof Integer){
-				out.print(((Integer)data).intValue()+"\t");
-			}else if(data instanceof Float){
-				out.print(((Float)data).floatValue()+"\t");
-			}else{
-				out.print(((String)data)+"\t");
-			}
-		}
-		out.println();
-	}
+    protected static void printTuple(Tuple t) {
+        for (int i = 0; i < numAtts; i++) {
+            Object data = t.dataAt(i);
+            if (data instanceof Integer) {
+                out.print(((Integer) data).intValue() + "\t");
+            } else if (data instanceof Float) {
+                out.print(((Float) data).floatValue() + "\t");
+            } else {
+                out.print(((String) data) + "\t");
+            }
+        }
+        out.println();
+    }
 
-	protected static void printSchema(Schema schema){
-		for(int i=0;i<numAtts;i++){
-			Attribute attr = schema.getAttribute(i);
-			out.print(attr.getTabName()+"."+attr.getColName()+"  ");
-		}
-		out.println();
-	}
+    protected static void printSchema(Schema schema) {
+        for (int i = 0; i < numAtts; i++) {
+            Attribute attr = schema.getAttribute(i);
+            out.print(attr.getTabName() + "." + attr.getColName() + "  ");
+        }
+        out.println();
+    }
 
 }
 
