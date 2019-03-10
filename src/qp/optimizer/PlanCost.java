@@ -1,6 +1,3 @@
-/** This method calculates the cost of the generated plans **/
-/** also estimates the statistics of the result relation **/
-
 package qp.optimizer;
 
 import java.io.BufferedReader;
@@ -20,304 +17,275 @@ import qp.utils.Attribute;
 import qp.utils.Batch;
 import qp.utils.Condition;
 import qp.utils.Schema;
-public class PlanCost{
 
-    int cost;
-    int numtuple;
+/**
+ * Calculates the cost of the generated plans, and also estimates the statistics of
+ * the result relation.
+ */
+public class PlanCost {
+    // The cost of the generated plans.
+    private int cost;
+    // The number of tuples in estimated results.
+    private int numOfTuple;
+    // A plan is not feasible if the buffers are not enough for a selected join.
+    private boolean isFeasible;
+    // A mapping from attribute name to the number of distinct values for this attribute.
+    private Hashtable ht;
 
-
-    /** If buffers are not enough for a selected join
-     ** then this plan is not feasible and return
-     ** a cost of infinity
-     **/
-
-    boolean isFeasible;
-
-
-    /** Hashtable stores mapping from Attribute name to
-     ** number of distinct values of that attribute
-     **/
-
-     Hashtable ht;
-
-
-
-    public PlanCost(){
-	ht = new Hashtable();
-	cost=0;
+    /**
+     * Constructor of PlanCost.
+     */
+    public PlanCost() {
+        ht = new Hashtable();
+        cost = 0;
     }
 
+    /**
+     * Getter for cost.
+     *
+     * @param root is the root of query plan tree.
+     * @return the cost of the plan or infinity value if unavailable.
+     */
+    public int getCost(Operator root) {
+        isFeasible = true;
+        numOfTuple = calculateCost(root);
 
-	/** returns the cost of the plan **/
-
-    public int getCost(Operator root){
-	isFeasible = true;
-	numtuple = calculateCost(root);
-	if(isFeasible==true){
-	    return cost;
-	}else{
-	    return Integer.MAX_VALUE;
-	}
+        if (isFeasible) {
+            return cost;
+        }
+        return Integer.MAX_VALUE;
     }
 
-
-	/** get number of tuples in estimated results **/
-
-    public int getNumTuples(){
-	return numtuple;
+    /**
+     * Getter for numOfTuple.
+     *
+     * @return the number of tuples in estimated results.
+     */
+    public int getNumOfTuple() {
+        return numOfTuple;
     }
 
-
-    /** returns number of tuples in the root **/
-
-    protected int calculateCost(Operator node){
-
-
-	if(node.getOpType()==OpType.JOIN){
-	    return getStatistics((Join)node);
-	}else if(node.getOpType() == OpType.SELECT){
-	    //System.out.println("PlanCost: line 40");
-	    return getStatistics((Select)node);
-	}else if(node.getOpType() == OpType.PROJECT){
-	    return getStatistics((Project)node);
-	}else if(node.getOpType() == OpType.SCAN){
-	    return getStatistics((Scan)node);
-
-	}
-	return -1;
+    /**
+     * @param node is the generated plan.
+     * @return the number of tuples in the root.
+     */
+    private int calculateCost(Operator node) {
+        if (node.getOpType() == OpType.JOIN) {
+            return getStatistics((Join) node);
+        } else if (node.getOpType() == OpType.SELECT) {
+            // System.out.println("PlanCost: line 40");
+            return getStatistics((Select) node);
+        } else if (node.getOpType() == OpType.PROJECT) {
+            return getStatistics((Project) node);
+        } else if (node.getOpType() == OpType.SCAN) {
+            return getStatistics((Scan) node);
+        }
+        return -1;
     }
 
-
-    /** projection will not change any statistics
-     ** No cost involved as done on the fly
-     **/
-
-    protected int getStatistics(Project node){
-	return calculateCost(node.getBase());
+    /**
+     * Projection will not change any statistics. No cost involved as done on the fly.
+     */
+    private int getStatistics(Project node) {
+        return calculateCost(node.getBase());
     }
 
+    /**
+     * Calculates the statistics, and cost of join operation.
+     */
+    private int getStatistics(Join node) {
+        int leftTuples = calculateCost(node.getLeft());
+        int rightTuples = calculateCost(node.getRight());
 
-	/** calculates the statistics, and cost of join operation **/
+        if (!isFeasible) {
+            return -1;
+        }
 
-    protected int getStatistics(Join node){
-	int lefttuples = calculateCost(node.getLeft());
-	int righttuples= calculateCost(node.getRight());
+        Condition condition = node.getCondition();
+        Schema leftSchema = node.getLeft().getSchema();
+        Schema rightSchema = node.getRight().getSchema();
 
-	if(isFeasible==false){
-	    return -1;
-	}
+        // Gets the size of the tuple in output, and calculates corresponding buffer capacity.
+        // i.e., number of tuples per page.
+        int tupleSize = node.getSchema().getTupleSize();
+        int outCapacity = Batch.getPageSize() / tupleSize;
+        int leftTupleSize = leftSchema.getTupleSize();
+        int leftCapacity = Batch.getPageSize() / leftTupleSize;
+        int rightTupleSize = rightSchema.getTupleSize();
+        int rightCapacity = Batch.getPageSize() / rightTupleSize;
 
-	Condition con = node.getCondition();
-	Schema leftschema = node.getLeft().getSchema();
-	Schema rightschema = node.getRight().getSchema();
+        int leftPages = (int) Math.ceil(((double) leftTuples) / (double) leftCapacity);
+        int rightPages = (int) Math.ceil(((double) rightTuples) / (double) rightCapacity);
 
+        Attribute leftJoinAttr = condition.getLhs();
+        Attribute rightJoinAttr = (Attribute) condition.getRhs();
+        int leftAttrIndex = leftSchema.indexOf(leftJoinAttr);
+        int rightAttrIndex = rightSchema.indexOf(rightJoinAttr);
+        leftJoinAttr = leftSchema.getAttribute(leftAttrIndex);
+        rightJoinAttr = rightSchema.getAttribute(rightAttrIndex);
 
-	/** get size of the tuple in output & correspondigly calculate
-		** buffer capacity, i.e., number of tuples per page **/
-	int tuplesize=node.getSchema().getTupleSize();
-	int outcapacity = Batch.getPageSize()/tuplesize;
-	int leftuplesize= leftschema.getTupleSize();
-	int leftcapacity = Batch.getPageSize()/leftuplesize;
-	int righttuplesize= rightschema.getTupleSize();
-	int rightcapacity = Batch.getPageSize()/righttuplesize;
+        // Number of distinct values of left and right join attribute.
+        int leftAttrDistNum = (Integer) ht.get(leftJoinAttr);
+        int rightAttrDistNum = (Integer) ht.get(rightJoinAttr);
 
-	int leftpages=(int) Math.ceil(((double)lefttuples)/(double)leftcapacity);
-	int rightpages=(int) Math.ceil(((double)righttuples)/(double) rightcapacity);
+        int numOfOutTuple = (int) Math.ceil(((double) leftTuples * rightTuples) / (double) Math.max(leftAttrDistNum, rightAttrDistNum));
 
+        int minDistinct = Math.min(leftAttrDistNum, rightAttrDistNum);
+        ht.put(leftJoinAttr, minDistinct);
+        ht.put(leftJoinAttr, minDistinct);
 
-	Attribute leftjoinAttr = con.getLhs();
-	Attribute rightjoinAttr = (Attribute)con.getRhs();
-	int leftattrind = leftschema.indexOf(leftjoinAttr);
-	int rightattrind = rightschema.indexOf(rightjoinAttr);
-	leftjoinAttr = leftschema.getAttribute(leftattrind);
-	rightjoinAttr = rightschema.getAttribute(rightattrind);
-	/** number of distinct values of left and right join attribute **/
-	int leftattrdistn = ((Integer)ht.get(leftjoinAttr)).intValue();
-	int rightattrdistn = ((Integer)ht.get(rightjoinAttr)).intValue();
+        // Calculates the cost of the operation.
+        int joinType = node.getJoinType();
 
-	int outtuples = (int) Math.ceil(((double) lefttuples*righttuples)/(double) Math.max(leftattrdistn,rightattrdistn));
+        // Gets the number of buffers allocated to this join.
+        int numbuff = BufferManager.getBuffersPerJoin();
 
-	int mindistinct = Math.min(leftattrdistn,rightattrdistn);
-	ht.put(leftjoinAttr,new Integer(mindistinct));
-	ht.put(leftjoinAttr,new Integer(mindistinct));
+        int joinCost;
 
+        // System.out.println("PlanCost: jointype="+joinType);
 
-	/** now calculate the cost of the operation**/
-	int joinType = node.getJoinType();
-	/** number of buffers allotted to this join**/
+        switch (joinType) {
+            case JoinType.NESTED_JOIN:
+                joinCost = leftPages * rightPages;
+                break;
+            case JoinType.BLOCK_NESTED:
+                joinCost = 0;
+                break;
+            case JoinType.SORT_MERGE:
+                joinCost = 0;
+                break;
+            case JoinType.HASH_JOIN:
+                joinCost = 0;
+                break;
+            default:
+                joinCost = 0;
+                break;
+        }
 
-	int numbuff = BufferManager.getBuffersPerJoin();
-
-	int joincost;
-
-	//System.out.println("PlanCost: jointype="+joinType);
-
-	switch(joinType){
-	case JoinType.NESTED_JOIN:
-	    joincost = leftpages*rightpages;
-	    break;
-	case JoinType.BLOCK_NESTED:
-	    joincost = 0;
-	    break;
-	case JoinType.SORT_MERGE:
-	    joincost = 0;
-	    break;
-	case JoinType.HASH_JOIN:
-	    joincost = 0;
-	    break;
-	default:
-	    joincost=0;
-	    break;
-	}
-
-	 cost = cost+joincost;
-	 return outtuples;
+        cost = cost + joinCost;
+        return numOfOutTuple;
     }
 
+    /**
+     * Gets the number of incoming tuples using the selectivity # of output tuples and
+     * statistics about the attributes. No cost involved as selection is performed on
+     * the fly.
+     */
+    private int getStatistics(Select node) {
+        // System.out.println("PlanCost: here at line 127");
+        int numOfInTuple = calculateCost(node.getBase());
 
+        if (!isFeasible) {
+            return Integer.MAX_VALUE;
+        }
 
-    /** Find number of incoming tuples, Using the selectivity find # of output tuples
-     ** And statistics about the attributes
-     ** Selection is performed on the fly, so no cost involved
-     **/
+        Condition condition = node.getCondition();
+        Schema schema = node.getSchema();
 
-    protected int getStatistics(Select node){
-	//System.out.println("PlanCost: here at line 127");
-	int intuples = calculateCost(node.getBase());
+        Attribute attr = condition.getLhs();
 
-	if(isFeasible==false){
-	    return Integer.MAX_VALUE;
-	}
+        int index = schema.indexOf(attr);
+        Attribute fullAttr = schema.getAttribute(index);
 
-	Condition con = node.getCondition();
-	Schema schema = node.getSchema();
+        int exprType = condition.getExprType();
 
-	Attribute attr = con.getLhs();
+        // Gets the number of distinct values of selection attributes.
+        int numDistinct = (Integer) ht.get(fullAttr);
+        // int numDistinct = ((Integer)ht.get(fullAttr)).intValue();
+        int numOfOutTuple;
 
-	int index = schema.indexOf(attr);
-	Attribute fullattr = schema.getAttribute(index);
+        // Calculates the number of tuples in result.
+        if (exprType == Condition.EQUAL) {
+            numOfOutTuple = (int) Math.ceil((double) numOfInTuple / (double) numDistinct);
+        } else if (exprType == Condition.NOTEQUAL) {
+            numOfOutTuple = (int) Math.ceil(numOfInTuple - ((double) numOfInTuple / (double) numDistinct));
+        } else {
+            numOfOutTuple = (int) Math.ceil(0.5 * numOfInTuple);
+        }
 
-	int exprtype = con.getExprType();
-
-
-	/** Get number of distinct values of selection attributes **/
-
-	Integer temp =(Integer)ht.get(fullattr);
-	int numdistinct = temp.intValue();
-	//int numdistinct = ((Integer)ht.get(fullattr)).intValue();
-	int outtuples;
-
-	/** calculate the number of tuples in result **/
-	if(exprtype==Condition.EQUAL){
-	    outtuples = (int) Math.ceil((double)intuples/(double)numdistinct);
-	}else if(exprtype==Condition.NOTEQUAL){
-	    outtuples= (int) Math.ceil(intuples - ((double) intuples/(double) numdistinct));
-	}else{
-	    outtuples=(int) Math.ceil(0.5*intuples);
-	}
-
-	/** Modify the number of distinct values of each attribute
-	 ** Assuming the values are distributed uniformly along entire
-	 ** relation
-	 **/
-	for(int i=0;i<schema.getNumCols();i++){
-	    Attribute attri = schema.getAttribute(i);
-	    int oldvalue = ((Integer)ht.get(attri)).intValue();
-	    int newvalue = (int) Math.ceil(((double) outtuples/(double) intuples)*oldvalue);
-	    ht.put(attri,new Integer(outtuples));
-	}
-	//System.out.println("PlanCost: line 164: outtuples="+outtuples);
-	return outtuples;
+        // Modifies the number of distinct values of each attribute. Assuming the values are
+        // distributed uniformly along the entire relation.
+        for (int i = 0; i < schema.getNumCols(); i++) {
+            Attribute a = schema.getAttribute(i);
+            int oldValue = (Integer) ht.get(a);
+            int newValue = (int) Math.ceil(((double) numOfOutTuple / (double) numOfInTuple) * oldValue);
+            ht.put(a, numOfOutTuple);
+        }
+        // System.out.println("PlanCost: line 164: numOfOutTuple="+numOfOutTuple);
+        return numOfOutTuple;
     }
 
+    /**
+     * The statistics file <tablename>.stat is to find the statistics about the table, which
+     * contains number of tuples in the table, and number of distinct values of each attribute.
+     */
+    private int getStatistics(Scan node) {
+        String tableName = node.getTableName();
+        String fileName = tableName + ".stat";
+        Schema schema = node.getSchema();
+        int numOfAttr = schema.getNumCols();
+        BufferedReader in = null;
 
+        try {
+            in = new BufferedReader(new FileReader(fileName));
+        } catch (IOException io) {
+            System.out.println("Error in opening file" + fileName);
+            System.exit(1);
+        }
+        String line = null;
 
-    /**  the statistics file <tablename>.stat to find the statistics
-     ** about that table;
-     ** This table contains number of tuples in the table
-     ** number of distinct values of each attribute
-     **/
+        // First line = number of tuples.
+        try {
+            line = in.readLine();
+        } catch (IOException io) {
+            System.out.println("Error in reading first line of " + fileName);
+            System.exit(1);
+        }
+        StringTokenizer tokenizer = new StringTokenizer(line);
 
-    protected int getStatistics(Scan node) {
-	String tablename = node.getTableName();
-	String filename = tablename+".stat";
-	Schema schema = node.getSchema();
-	int numAttr = schema.getNumCols();
-	BufferedReader in=null;
-	try{
-	    in = new BufferedReader(new FileReader(filename));
-	}catch(IOException io){
-	    System.out.println("Error in opening file"+filename);
-	    System.exit(1);
-	}
-	String line=null;
+        if (tokenizer.countTokens() != 1) {
+            System.out.println("incorrect format of statistics file " + fileName);
+            System.exit(1);
+        }
 
-	// First line = number of tuples
-	try{
-	   line = in.readLine();
-	}catch(IOException io){
-	    System.out.println("Error in readin first line of "+filename);
-	    System.exit(1);
-	}
-	StringTokenizer tokenizer= new StringTokenizer(line);
-	if(tokenizer.countTokens() !=1){
-	    System.out.println("incorrect format of statastics file "+filename);
-	    System.exit(1);
-	}
+        String temp = tokenizer.nextToken();
+        // Number of tuples in this table.
+        int numOfTuples = Integer.parseInt(temp);
 
+        try {
+            line = in.readLine();
+        } catch (IOException io) {
+            System.out.println("error in reading second line of " + fileName);
+            System.exit(1);
+        }
+        tokenizer = new StringTokenizer(line);
 
-	String temp = tokenizer.nextToken();
-	/** number of tuples in this table; **/
-	int numtuples = Integer.parseInt(temp);
+        if (tokenizer.countTokens() != numOfAttr) {
+            System.out.println("incorrect format of statistics file " + fileName);
+            System.exit(1);
+        }
 
+        for (int i = 0; i < numOfAttr; i++) {
+            Attribute attr = schema.getAttribute(i);
+            temp = tokenizer.nextToken();
+            Integer distinctValues = Integer.valueOf(temp);
+            ht.put(attr, distinctValues);
+        }
+        // Number of tuples per page.
+        int tupleSize = schema.getTupleSize();
+        int pageSize = Batch.getPageSize() / tupleSize;
+        // Batch.capacity();
+        int numOfPages = (int) Math.ceil((double) numOfTuples / (double) pageSize);
+        cost = cost + numOfPages;
 
+        try {
+            in.close();
+        } catch (IOException io) {
+            System.out.println("error in closing the file " + fileName);
+            System.exit(1);
+        }
 
-	try{
-	    line = in.readLine();
-	}catch(IOException io){
-	    System.out.println("error in reading second line of "+filename);
-	    System.exit(1);
-	}
-	tokenizer = new StringTokenizer(line);
-	if(tokenizer.countTokens() != numAttr){
-	    System.out.println("incorrect format of statastics file "+filename);
-	    System.exit(1);
-	}
-
-	for(int i=0;i<numAttr;i++){
-	    Attribute attr = schema.getAttribute(i);
-	    temp = tokenizer.nextToken();
-	    Integer distinctValues = Integer.valueOf(temp);
-	    ht.put(attr,distinctValues);
-	}
-	/** number of tuples per page**/
-
-	int tuplesize = schema.getTupleSize();
-	int pagesize= Batch.getPageSize()/tuplesize;
-	//Batch.capacity();
-	int numpages= (int) Math.ceil((double) numtuples/(double) pagesize);
-	cost = cost+numpages;
-	try{
-	    in.close();
-	}catch(IOException io){
-	    System.out.println("error in closing the file "+filename);
-	    System.exit(1);
-	}
-
-
-	//System.out.println("Scan: tablename="+tablename+"pres cost="+numpages+"total cost="+cost);
-	return numtuples;
+        // System.out.println("Scan: tablename="+tablename+"pres cost="+numpages+"total cost="+cost);
+        return numOfTuples;
     }
-
 }
-
-
-
-
-
-
-
-
-
-
-
