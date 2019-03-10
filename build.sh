@@ -15,6 +15,9 @@ echo "Query environment setup successfully!"
 # Begin to compile the project.
 echo "Begin to build the project..."
 
+# Creates the compilation output directory if not exists.
+mkdir -p ${COMPONENT}/classes
+
 javac -d ${COMPONENT}/classes ${COMPONENT}/src/qp/utils/*.java
 javac -d ${COMPONENT}/classes ${COMPONENT}/src/qp/parser/*.java
 javac -d ${COMPONENT}/classes ${COMPONENT}/src/qp/operators/*.java
