@@ -76,84 +76,68 @@ public class Select extends Operator {
         return con;
     }
 
-
     /**
-     * Opens the connection to the base operator
-     **/
-
+     * Opens the connection to the base operator.
+     *
+     * @return true if the operator is opened successfully.
+     */
     public boolean open() {
-        eos = false;     // Since the stream is just opened
-        start = 0;   // set the cursor to starting position in input buffer
+        // Sets to false since the stream is just opened
+        eos = false;
+        // Sets the cursor to starting position in input buffer
+        start = 0;
 
-        /** set number of tuples per page**/
-        int tuplesize = schema.getTupleSize();
-        batchSize = Batch.getPageSize() / tuplesize;
+        // Sets the batch size based on the tuple size.
+        int tupleSize = schema.getTupleSize();
+        batchSize = Batch.getPageSize() / tupleSize;
 
-
-        if (base.open())
-            return true;
-        else
-            return false;
+        // Opens the base operator as well.
+        return base.open();
     }
 
-
     /**
-     * returns a batch of tuples that satisfies the
-     * * condition specified on the tuples coming from base operator
-     * * NOTE: This operation is performed on the fly
-     **/
-
+     * Selects those tuples satisfying the select condition. This operation is performed on the fly.
+     *
+     * @return the next page of tuples.
+     */
     public Batch next() {
-        //System.out.println("Select:-----------------in next--------------");
-
-        int i = 0;
-
+        // Closes the operator if reaching the end-of-stream.
         if (eos) {
             close();
             return null;
         }
 
-        /** An output buffer is initiated**/
+        // Initiates an output buffer.
         outBatch = new Batch(batchSize);
 
-        /** keep on checking the incoming pages until
-         ** the output buffer is full
-         **/
+        // Continues until the the output buffer is full.
         while (!outBatch.isFull()) {
+            // Retrieves a new page from input if the cursor is at the beginning of a new page.
             if (start == 0) {
                 inBatch = base.next();
-                /** There is no more incoming pages from base operator **/
+                // Returns if reaching the end-of-stream.
                 if (inBatch == null) {
-
                     eos = true;
                     return outBatch;
                 }
             }
 
-            /** Continue this for loop until this page is fully observed
-             ** or the output buffer is full
-             **/
-
-            for (i = start; i < inBatch.size() && (!outBatch.isFull()); i++) {
+            // Continues until the input buffer is fully observed or output buffer is full.
+            int i;
+            for (i = start; i < inBatch.size() && !outBatch.isFull(); i++) {
                 Tuple present = inBatch.elementAt(i);
-                /** If the condition is satisfied then
-                 ** this tuple is added tot he output buffer
-                 **/
-                if (checkCondition(present))
-                    //if(present.checkCondn(con))
+                // Adds the current tuple to the output buffer if satisfying the select condition.
+                if (checkCondition(present)) {
                     outBatch.add(present);
+                }
             }
 
-            /** Modify the cursor to the position requierd
-             ** when the base operator is called next time;
-             **/
-
-            if (i == inBatch.size())
+            // Modify the cursor to the position required when the operator is called next time;
+            if (i == inBatch.size()) {
                 start = 0;
-            else
+            } else {
                 start = i;
-
-            //  return outBatch;
+            }
         }
         return outBatch;
     }
@@ -177,73 +161,67 @@ public class Select extends Operator {
     private boolean checkCondition(Tuple tuple) {
         Attribute attr = con.getLhs();
         int index = schema.indexOf(attr);
-        int datatype = schema.typeOf(attr);
+        int dataType = schema.typeOf(attr);
         Object srcValue = tuple.dataAt(index);
         String checkValue = (String) con.getRhs();
-        int exprtype = con.getExprType();
+        int expressionType = con.getExprType();
 
-        if (datatype == Attribute.INT) {
-            int srcVal = ((Integer) srcValue).intValue();
+        if (dataType == Attribute.INT) {
+            int srcVal = (Integer) srcValue;
             int checkVal = Integer.parseInt(checkValue);
-            if (exprtype == Condition.LESSTHAN) {
-                if (srcVal < checkVal)
-                    return true;
-            } else if (exprtype == Condition.GREATERTHAN) {
-                if (srcVal > checkVal)
-                    return true;
-            } else if (exprtype == Condition.LTOE) {
-                if (srcVal <= checkVal)
-                    return true;
-            } else if (exprtype == Condition.GTOE) {
-                if (srcVal >= checkVal)
-                    return true;
-            } else if (exprtype == Condition.EQUAL) {
-                if (srcVal == checkVal)
-                    return true;
-            } else if (exprtype == Condition.NOTEQUAL) {
-                if (srcVal != checkVal)
-                    return true;
+
+            if (expressionType == Condition.LESSTHAN) {
+                return srcVal < checkVal;
+            } else if (expressionType == Condition.GREATERTHAN) {
+                return srcVal > checkVal;
+            } else if (expressionType == Condition.LTOE) {
+                return srcVal <= checkVal;
+            } else if (expressionType == Condition.GTOE) {
+                return srcVal >= checkVal;
+            } else if (expressionType == Condition.EQUAL) {
+                return srcVal == checkVal;
+            } else if (expressionType == Condition.NOTEQUAL) {
+                return srcVal != checkVal;
             } else {
-                System.out.println("Select:Incorrect condition operator");
+                System.out.println("Select:incorrect condition operator");
             }
-        } else if (datatype == Attribute.STRING) {
+        } else if (dataType == Attribute.STRING) {
             String srcVal = (String) srcValue;
             int flag = srcVal.compareTo(checkValue);
 
-            if (exprtype == Condition.LESSTHAN) {
-                if (flag < 0) return true;
-
-            } else if (exprtype == Condition.GREATERTHAN) {
-                if (flag > 0) return true;
-            } else if (exprtype == Condition.LTOE) {
-                if (flag <= 0) return true;
-            } else if (exprtype == Condition.GTOE) {
-                if (flag >= 0) return true;
-            } else if (exprtype == Condition.EQUAL) {
-                if (flag == 0) return true;
-            } else if (exprtype == Condition.NOTEQUAL) {
-                if (flag != 0) return true;
+            if (expressionType == Condition.LESSTHAN) {
+                return flag < 0;
+            } else if (expressionType == Condition.GREATERTHAN) {
+                return flag > 0;
+            } else if (expressionType == Condition.LTOE) {
+                return flag <= 0;
+            } else if (expressionType == Condition.GTOE) {
+                return flag >= 0;
+            } else if (expressionType == Condition.EQUAL) {
+                return flag == 0;
+            } else if (expressionType == Condition.NOTEQUAL) {
+                return flag != 0;
             } else {
-                System.out.println("Select: Incorrect condition operator");
+                System.out.println("Select: incorrect condition operator");
             }
-
-        } else if (datatype == Attribute.REAL) {
-            float srcVal = ((Float) srcValue).floatValue();
+        } else if (dataType == Attribute.REAL) {
+            float srcVal = (Float) srcValue;
             float checkVal = Float.parseFloat(checkValue);
-            if (exprtype == Condition.LESSTHAN) {
-                if (srcVal < checkVal) return true;
-            } else if (exprtype == Condition.GREATERTHAN) {
-                if (srcVal > checkVal) return true;
-            } else if (exprtype == Condition.LTOE) {
-                if (srcVal <= checkVal) return true;
-            } else if (exprtype == Condition.GTOE) {
-                if (srcVal >= checkVal) return true;
-            } else if (exprtype == Condition.EQUAL) {
-                if (srcVal == checkVal) return true;
-            } else if (exprtype == Condition.NOTEQUAL) {
-                if (srcVal != checkVal) return true;
+
+            if (expressionType == Condition.LESSTHAN) {
+                return srcVal < checkVal;
+            } else if (expressionType == Condition.GREATERTHAN) {
+                return srcVal > checkVal;
+            } else if (expressionType == Condition.LTOE) {
+                return srcVal <= checkVal;
+            } else if (expressionType == Condition.GTOE) {
+                return srcVal >= checkVal;
+            } else if (expressionType == Condition.EQUAL) {
+                return srcVal == checkVal;
+            } else if (expressionType == Condition.NOTEQUAL) {
+                return srcVal != checkVal;
             } else {
-                System.out.println("Select:Incorrect condition operator");
+                System.out.println("Select: incorrect condition operator");
             }
         }
         return false;
