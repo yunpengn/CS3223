@@ -102,7 +102,7 @@ public class Scan extends Operator {
 
     /**
      * Closes the connection.
-     *
+     * @return true if the connection is closed successfully.
      */
     public boolean close() {
         try {

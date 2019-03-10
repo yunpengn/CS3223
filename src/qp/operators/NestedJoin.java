@@ -150,14 +150,12 @@ public class NestedJoin extends Join {
 
                 // Starts the scanning of right table whenever a new left page comes.
                 try {
-
                     in = new ObjectInputStream(new FileInputStream(rightFileName));
                     eosRight = false;
                 } catch (IOException io) {
                     System.err.println("NestedJoin:error in reading the file");
                     System.exit(1);
                 }
-
             }
 
             // Continuously probe the right table until we hit the end-of-stream.

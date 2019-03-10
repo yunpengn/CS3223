@@ -132,7 +132,7 @@ public class Select extends Operator {
                 }
             }
 
-            // Modify the cursor to the position required when the operator is called next time;
+            // Modifies the cursor to the position required when the operator is called next time.
             if (i == inBatch.size()) {
                 start = 0;
             } else {

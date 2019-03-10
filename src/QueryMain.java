@@ -78,7 +78,7 @@ public class QueryMain {
             System.exit(1);
         }
 
-        // SQLQuery is the result of the parsing
+        // SQLQuery is the result of the parsing.
         SQLQuery sqlQuery = p.getSQLQuery();
         int numOfJoin = sqlQuery.getNumJoin();
 

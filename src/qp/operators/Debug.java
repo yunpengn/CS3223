@@ -84,6 +84,7 @@ public class Debug {
 
     /**
      * Pretty-prints a given node in a plan execution tree.
+     *
      * @param node is the node to be printed.
      */
     public static void PPrint(Operator node) {
