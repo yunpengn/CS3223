@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/yunpengn/CS3223.svg?token=pkVciw13vjdfspFfg5fy&branch=master)](https://travis-ci.com/yunpengn/CS3223)
+
 # CS3223 Database Systems Implementation Project
 
 **_AY2018/2019 Semester 2<br>
