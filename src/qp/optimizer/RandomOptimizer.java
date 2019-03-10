@@ -393,7 +393,7 @@ public class RandomOptimizer{
 	}else if(node.getOpType()==OpType.PROJECT){
 	    Operator base = ((Project)node).getBase();
 	    modifySchema(base);
-	    Vector attrlist = ((Project)node).getProjAttr();
+	    Vector attrlist = ((Project)node).getProjectAttr();
 	    node.setSchema(base.getSchema().subSchema(attrlist));
 	}
     }
@@ -413,30 +413,30 @@ public class RandomOptimizer{
 	    int joinType = ((Join)node).getJoinType();
 	    int numbuff = BufferManager.getBuffersPerJoin();
 	    switch(joinType){
-	    case JoinType.NESTEDJOIN:
+	    case JoinType.NESTED_JOIN:
 
 		NestedJoin nj = new NestedJoin((Join) node);
 		nj.setLeft(left);
 		nj.setRight(right);
-		nj.setNumBuff(numbuff);
+		nj.setNumOfBuffer(numbuff);
 		return nj;
 
 	    /** Temporarity used simple nested join,
 	    	replace with hasjoin, if implemented **/
 
-	    case JoinType.BLOCKNESTED:
+	    case JoinType.BLOCK_NESTED:
 
 		NestedJoin bj = new NestedJoin((Join) node);
                 /* + other code */
 		return bj;
 
-	    case JoinType.SORTMERGE:
+	    case JoinType.SORT_MERGE:
 
 		NestedJoin sm = new NestedJoin((Join) node);
                 /* + other code */
 		return sm;
 
-	    case JoinType.HASHJOIN:
+	    case JoinType.HASH_JOIN:
 
 		NestedJoin hj = new NestedJoin((Join) node);
                 /* + other code */

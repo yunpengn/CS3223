@@ -1,105 +1,167 @@
-/** This is base class for all the join operators **/
-
-
 package qp.operators;
 
 import qp.utils.Condition;
 import qp.utils.Schema;
 
-public class Join extends Operator{
+/**
+ * Defines the base class for all join operators.
+ */
+public class Join extends Operator {
+    // The left child of the join operator.
+    Operator left;
+    // The right child of the join operator.
+    Operator right;
+    // The join condition.
+    Condition con;
+    // The number of buffers available
+    int numOfBuffer;
 
-    Operator left;   // left child
-    Operator right;   // right child
-    Condition con;     //join condition
-    int numBuff;    // Number of buffers available
+    // The type of the join (such as NestedJoin, SortMerge or HashJoin).
+    int joinType;
+    // The index of the current join node.
+    private int nodeIndex;
 
-    int jointype;  // JoinType.NestedJoin/SortMerge/HashJoin
-    int nodeIndex;   // Each join node is given a number
+    /**
+     * Creates a new join operator.
+     *
+     * @param left is the left child of the join operator.
+     * @param right is the right child of the join operator.
+     * @param cn is the join condition.
+     * @param type is the join type.
+     */
+    public Join(Operator left, Operator right, Condition cn, int type) {
+        super(type);
+        this.left = left;
+        this.right = right;
+        this.con = cn;
+    }
 
-    public Join(Operator left, Operator right, Condition cn, int type){
-	super(type);
-	this.left=left;
-	this.right=right;
-	this.con=cn;
+    /**
+     * Setter for the numOfBuffer.
+     *
+     * @param num is the number of buffers available to this join operator.
+     */
+    public void setNumOfBuffer(int num) {
+        this.numOfBuffer = num;
+    }
+
+    /**
+     * Getter for the numOfBuffer.
+     *
+     * @return the number of buffers available to this join operator.
+     */
+    int getNumOfBuffer() {
+        return numOfBuffer;
+    }
+
+    /**
+     * Getter for nodeIndex.
+     *
+     * @return the index of this node in the query plan tree.
+     */
+    public int getNodeIndex() {
+        return nodeIndex;
+    }
+
+    /**
+     * Setter for nodeIndex.
+     *
+     * @param num is the index of this node in the query plan tree.
+     */
+    public void setNodeIndex(int num) {
+        this.nodeIndex = num;
 
     }
 
-	/** number of buffers available to this join operator **/
-
-    public void setNumBuff(int num){
-	this.numBuff = num;
+    /**
+     * Getter for joinType.
+     *
+     * @return the type of this join operator.
+     */
+    public int getJoinType() {
+        return joinType;
     }
 
-    public int getNumBuff(){
-	return numBuff;
+    /**
+     * Setter for joinType.
+     *
+     * @param type is the type of this join operator.
+     */
+    public void setJoinType(int type) {
+        this.joinType = type;
     }
 
-
-
-	/** index of this node in query plan tree **/
-
-    public int getNodeIndex(){
-	return nodeIndex;
+    /**
+     * Getter for left.
+     *
+     * @return the left child of this join operator.
+     */
+    public Operator getLeft() {
+        return left;
     }
 
-    public void  setNodeIndex(int num){
-	this.nodeIndex = num;
-
+    /**
+     * Setter for left.
+     *
+     * @param left is the left child of this join operator.
+     */
+    public void setLeft(Operator left) {
+        this.left = left;
     }
 
-
-    public int getJoinType(){
-	return jointype;
+    /**
+     * Getter for right.
+     *
+     * @return the right child of this join operator.
+     */
+    public Operator getRight() {
+        return right;
     }
 
-	/** type of join **/
-
-    public void setJoinType(int type){
-	this.jointype=type;
+    /**
+     * Setter for right.
+     *
+     * @param right is the right child of this join operator.
+     */
+    public void setRight(Operator right) {
+        this.right = right;
     }
 
-    public Operator getLeft(){
-	return left;
+    /**
+     * Setter for condition.
+     *
+     * @param cond is the join condition.
+     */
+    public void setCondition(Condition cond) {
+        this.con = cond;
     }
 
-    public void setLeft(Operator left){
-	this.left = left;
+    /**
+     * Getter for condition.
+     *
+     * @return the join condition.
+     */
+    public Condition getCondition() {
+        return con;
     }
 
-    public Operator getRight(){
-	return right;
+    /**
+     * Creates a copy of this operator.
+     *
+     * @return the deep clone of this join operator (recursively clone left & right-hand side).
+     */
+    @Override
+    public Object clone() {
+        Operator newLeft = (Operator) left.clone();
+        Operator newRight = (Operator) right.clone();
+        Condition newCondition = (Condition) con.clone();
+        Schema newSchema = newLeft.getSchema().joinWith(newRight.getSchema());
+
+        Join jn = new Join(newLeft, newRight, newCondition, opType);
+        jn.setSchema(newSchema);
+        jn.setJoinType(joinType);
+        jn.setNodeIndex(nodeIndex);
+        jn.setNumOfBuffer(numOfBuffer);
+        return jn;
     }
-
-    public void setRight(Operator right){
-	this.right = right;
-    }
-
-    public void setCondition(Condition cond){
-	this.con = cond;
-    }
-
-    public Condition getCondition(){
-	return con;
-    }
-
-    public Object clone(){
-	Operator newleft = (Operator) left.clone();
-	Operator newright =(Operator) right.clone();
-	Condition newcond = (Condition) con.clone();
-
-	Join jn = new Join(newleft,newright,newcond,optype);
-	Schema newsche = newleft.getSchema().joinWith(newright.getSchema());
-	jn.setSchema(newsche);
-	jn.setJoinType(jointype);
-	jn.setNodeIndex(nodeIndex);
-	jn.setNumBuff(numBuff);
-	return jn;
-
-    }
-
 }
-
-
-
-
-

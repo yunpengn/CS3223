@@ -153,16 +153,16 @@ public class PlanCost{
 	//System.out.println("PlanCost: jointype="+joinType);
 
 	switch(joinType){
-	case JoinType.NESTEDJOIN:
+	case JoinType.NESTED_JOIN:
 	    joincost = leftpages*rightpages;
 	    break;
-	case JoinType.BLOCKNESTED:
+	case JoinType.BLOCK_NESTED:
 	    joincost = 0;
 	    break;
-	case JoinType.SORTMERGE:
+	case JoinType.SORT_MERGE:
 	    joincost = 0;
 	    break;
-	case JoinType.HASHJOIN:
+	case JoinType.HASH_JOIN:
 	    joincost = 0;
 	    break;
 	default:
@@ -239,7 +239,7 @@ public class PlanCost{
      **/
 
     protected int getStatistics(Scan node) {
-	String tablename = node.getTabName();
+	String tablename = node.getTableName();
 	String filename = tablename+".stat";
 	Schema schema = node.getSchema();
 	int numAttr = schema.getNumCols();

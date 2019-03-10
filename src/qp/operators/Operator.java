@@ -1,68 +1,95 @@
-
-/**
-This is base class for all the operators **/
-
 package qp.operators;
 
 import qp.utils.Batch;
 import qp.utils.Schema;
-public class Operator{
 
+/**
+ * Defines the base class for all operators.
+ */
+public class Operator {
+    // The type of the operator (such as SELECT, PROJECT or JOIN).
+    int opType;
+    // The result schema at this operator.
+    Schema schema;
 
-    int optype;   //Whether it is OpType.SELECT/ Optype.PROJECT/OpType.JOIN
-    Schema schema;   // Schema of the result at this operator
-
-    public Operator(int type){
-	this.optype = type;
+    /**
+     * Instantiates a operator of a certain type.
+     *
+     * @param type is the type of this operator.
+     */
+    public Operator(int type) {
+        this.opType = type;
     }
 
-
-
-    public Schema getSchema(){
-	return schema;
+    /**
+     * Getter for the schema.
+     *
+     * @return the result schema at this operator.
+     */
+    public Schema getSchema() {
+        return schema;
     }
 
-    public void setSchema(Schema schm){
-	this.schema = schm;
+    /**
+     * Setter for the schema.
+     *
+     * @param schema is the result schema at this operator.
+     */
+    public void setSchema(Schema schema) {
+        this.schema = schema;
     }
 
-    public void setOpType(int type){
-	this.optype = type;
+    /**
+     * Getter for the operator type.
+     *
+     * @return the type of this operator.
+     */
+    public int getOpType() {
+        return opType;
     }
 
-    public int  getOpType(){
-	return optype;
+    /**
+     * Setter for the operator type.
+     *
+     * @param type is type of this operator.
+     */
+    public void setOpType(int type) {
+        this.opType = type;
     }
 
-
-    public boolean open(){
-
-	return true;
+    /**
+     * Opens the operator.
+     *
+     * @return true when the operator is open successfully.
+     */
+    public boolean open() {
+        return true;
     }
 
-    public Batch next(){
-	System.out.println("Operator:  ");
-	return null;
+    /**
+     * @return the next page of tuples.
+     */
+    public Batch next() {
+        System.out.println("Operator:  ");
+        return null;
     }
 
-    public boolean close(){
-
-	return true;
+    /**
+     * Closes the operator.
+     *
+     * @return true when the operator is closed successfully.
+     */
+    public boolean close() {
+        return true;
     }
 
-
-    public Object clone(){
-	return new Operator(optype);
+    /**
+     * Creates a copy of this operator.
+     *
+     * @return the clone of this operator.
+     */
+    @Override
+    public Object clone() {
+        return new Operator(opType);
     }
-
 }
-
-
-
-
-
-
-
-
-
-
