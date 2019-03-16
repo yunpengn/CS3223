@@ -46,6 +46,10 @@ This repository presents our approach to this project. We are a team of 3 underg
     - Every class & method should have a header comment using valid syntax of [JavaDoc](https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html);
     - Each indentation level should 4 spaces (rather than tab);
     - Use logging if necessary (for this project, we would use `System.out.println` & `System.err.println` for simplicity).
+- To generate the scanner class with JLex library, follow the steps below:
+    - Go to the `lib` folder by `cd lib/`;
+    - Run `java JLex.Main ../src/qp/parser/scanner.lex`
+    - The command in last step will generate a new file named `scanner.lex.java`, use this file to replace the original `Scanner.java` file. Make sure you remember to change the class name inside the file as well (as the original generated file name is not desirable).
 
 ## References
 
