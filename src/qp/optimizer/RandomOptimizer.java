@@ -143,7 +143,6 @@ public class RandomOptimizer {
                             minNeighbor = neighbor;
                             minNeighborCost = neighborCost;
                         }
-                        // System.out.println("-----------------for-------------");
                     }
                     if (minNeighborCost < initCost) {
                         initPlan = minNeighbor;
@@ -184,14 +183,14 @@ public class RandomOptimizer {
     private Operator neighborMethod(Operator root, int joinNum) {
         System.out.println("------------------neighbor by method change----------------");
 
-        int numJMeth = JoinType.numJoinTypes();
-        if (numJMeth > 1) {
+        int numJoinMethods = JoinType.numJoinTypes();
+        if (numJoinMethods > 1) {
             // Finds the node that is to be altered.
             Join node = (Join) findNodeAt(root, joinNum);
             int prevJoinMethod = node.getJoinType();
-            int joinMethod = RandNumb.randInt(0, numJMeth - 1);
+            int joinMethod = RandNumb.randInt(0, numJoinMethods - 1);
             while (joinMethod == prevJoinMethod) {
-                joinMethod = RandNumb.randInt(0, numJMeth - 1);
+                joinMethod = RandNumb.randInt(0, numJoinMethods - 1);
             }
             node.setJoinType(joinMethod);
         }

@@ -66,6 +66,8 @@ public class PlanCost {
     }
 
     /**
+     * Calculates the cost of the plan.
+     *
      * @param node is the generated plan.
      * @return the number of tuples in the root.
      */
@@ -73,7 +75,6 @@ public class PlanCost {
         if (node.getOpType() == OpType.JOIN) {
             return getStatistics((Join) node);
         } else if (node.getOpType() == OpType.SELECT) {
-            // System.out.println("PlanCost: line 40");
             return getStatistics((Select) node);
         } else if (node.getOpType() == OpType.PROJECT) {
             return getStatistics((Project) node);
@@ -85,6 +86,9 @@ public class PlanCost {
 
     /**
      * Projection will not change any statistics. No cost involved as done on the fly.
+     *
+     * @param node is the plan for Project Operator.
+     * @return the cost of the plan.
      */
     private int getStatistics(Project node) {
         return calculateCost(node.getBase());
@@ -92,6 +96,9 @@ public class PlanCost {
 
     /**
      * Calculates the statistics, and cost of join operation.
+     *
+     * @param node is the plan for Join Operator.
+     * @return the cost of the plan.
      */
     private int getStatistics(Join node) {
         int leftTuples = calculateCost(node.getLeft());
@@ -142,8 +149,6 @@ public class PlanCost {
 
         int joinCost;
 
-        // System.out.println("PlanCost: jointype="+joinType);
-
         switch (joinType) {
             case JoinType.NESTED_JOIN:
                 joinCost = leftPages * rightPages;
@@ -170,6 +175,9 @@ public class PlanCost {
      * Gets the number of incoming tuples using the selectivity # of output tuples and
      * statistics about the attributes. No cost involved as selection is performed on
      * the fly.
+     *
+     * @param node is the plan for Select Operator.
+     * @return the cost of the plan.
      */
     private int getStatistics(Select node) {
         // System.out.println("PlanCost: here at line 127");
@@ -191,7 +199,6 @@ public class PlanCost {
 
         // Gets the number of distinct values of selection attributes.
         int numDistinct = (Integer) ht.get(fullAttr);
-        // int numDistinct = ((Integer)ht.get(fullAttr)).intValue();
         int numOfOutTuple;
 
         // Calculates the number of tuples in result.
@@ -211,13 +218,15 @@ public class PlanCost {
             int newValue = (int) Math.ceil(((double) numOfOutTuple / (double) numOfInTuple) * oldValue);
             ht.put(a, numOfOutTuple);
         }
-        // System.out.println("PlanCost: line 164: numOfOutTuple="+numOfOutTuple);
         return numOfOutTuple;
     }
 
     /**
      * The statistics file <tablename>.stat is to find the statistics about the table, which
      * contains number of tuples in the table, and number of distinct values of each attribute.
+     *
+     * @param node is the plan for Scan Operator.
+     * @return the cost of the plan.
      */
     private int getStatistics(Scan node) {
         String tableName = node.getTableName();
@@ -285,7 +294,6 @@ public class PlanCost {
             System.exit(1);
         }
 
-        // System.out.println("Scan: tablename="+tablename+"pres cost="+numpages+"total cost="+cost);
         return numOfTuples;
     }
 }

@@ -27,6 +27,7 @@ public class RandomInitialPlan {
     // Vector of Vectors of Select + From + Where + GroupBy.
     private SQLQuery sqlQuery;
 
+    // TODO: add generic types to all collection classes.
     // List of project conditions.
     private Vector projectList;
     // List of from conditions.
@@ -133,7 +134,6 @@ public class RandomInitialPlan {
             Condition condition = (Condition) selectionList.elementAt(j);
             if (condition.getOpType() == Condition.SELECT) {
                 String tableName = condition.getLhs().getTabName();
-                // System.out.println("RandomInitial:-------------Select-------:"+tableName);
 
                 Operator tempOp = (Operator) nameToOpr.get(tableName);
                 opr = new Select(tempOp, condition, OpType.SELECT);
@@ -167,8 +167,6 @@ public class RandomInitialPlan {
             Condition condition = (Condition) joinList.elementAt(joinNum);
             String leftTable = condition.getLhs().getTabName();
             String rightTable = ((Attribute) condition.getRhs()).getTabName();
-
-            // System.out.println("---------JOIN:---------left X right"+leftTable+rightTable);
 
             Operator leftOp = (Operator) nameToOpr.get(leftTable);
             Operator rightOp = (Operator) nameToOpr.get(rightTable);
@@ -213,6 +211,7 @@ public class RandomInitialPlan {
 
     /**
      * Replaces the old Operator with new Operator.
+     * TODO [TBD]: refactor hashtable access to list access.
      *
      * @param oldOp is the old Operator to be replaced.
      * @param newOp is the new Operator.
