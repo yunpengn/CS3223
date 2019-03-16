@@ -124,8 +124,8 @@ public class PlanCost {
         int leftPages = (int) Math.ceil(((double) leftTuples) / (double) leftCapacity);
         int rightPages = (int) Math.ceil(((double) rightTuples) / (double) rightCapacity);
 
-        Attribute leftJoinAttr = condition.getLhs();
-        Attribute rightJoinAttr = (Attribute) condition.getRhs();
+        Attribute leftJoinAttr = condition.getLeft();
+        Attribute rightJoinAttr = (Attribute) condition.getRight();
         int leftAttrIndex = leftSchema.indexOf(leftJoinAttr);
         int rightAttrIndex = rightSchema.indexOf(rightJoinAttr);
         leftJoinAttr = leftSchema.getAttribute(leftAttrIndex);
@@ -190,12 +190,12 @@ public class PlanCost {
         Condition condition = node.getCondition();
         Schema schema = node.getSchema();
 
-        Attribute attr = condition.getLhs();
+        Attribute attr = condition.getLeft();
 
         int index = schema.indexOf(attr);
         Attribute fullAttr = schema.getAttribute(index);
 
-        int exprType = condition.getExprType();
+        int exprType = condition.getOperator();
 
         // Gets the number of distinct values of selection attributes.
         int numDistinct = (Integer) ht.get(fullAttr);

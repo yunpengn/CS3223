@@ -1,113 +1,156 @@
-/** the format of the parse SQL quer, also see readme file **/
-
-
 package qp.utils;
+
 import java.util.Vector;
 
+/**
+ * Defines the format of the parsed SQL query.
+ */
 public class SQLQuery {
+    // List of projected attributes in the SELECT clause.
+    private Vector projectList;
+    // List of tables in the FROM clause.
+    private Vector fromList;
 
+    // List of conditions in the WHERE clause.
+    private Vector conditionList;
+    // List of select predicates only (a subset of conditionList).
+    private Vector selectionList;
+    // List of join predicates only (a subset of conditionList).
+    private Vector joinList;
 
-    Vector projectList;     //List of project attributes from select clause
-    Vector fromList;        // List of tables in from clause
-    Vector conditionList;   // List of conditions appeared in where clause
+    // List of attributes in the GROUP_BY clause.
+    private Vector groupByList;
 
-    /** represent again the the selection and join conditions
-	in separate lists
-    **/
+    // Indicates whether DISTINCT appears in the SELECT clause.
+    private boolean isDistinct = false;
 
-    Vector selectionList;    //List of select predicates
-    Vector joinList;           //List of join predicates
-
-    Vector groupbyList;        //List of attibutes in groupby clause
-    boolean isDistinct=false;   // Whether distinct key word appeared in select clause
-
-
-    public SQLQuery(Vector list1,Vector list2,Vector list3,Vector list4){
-	projectList=list1;
-	fromList = list2;
-	conditionList = list3;
-	groupbyList = list4;
-	splitConditionList(conditionList);
-
+    /**
+     * Constructs a new SQL query object.
+     *
+     * @param projectList is the project list.
+     * @param fromList is the from list.
+     * @param conditionList is the condition list.
+     * @param groupByList is the groupBy list.
+     */
+    public SQLQuery(Vector projectList, Vector fromList, Vector conditionList, Vector groupByList) {
+        this.projectList = projectList;
+        this.fromList = fromList;
+        this.conditionList = conditionList;
+        this.groupByList = groupByList;
+        splitConditionList(conditionList);
     }
 
-    public SQLQuery(Vector list1,Vector list2,Vector list3){
-     projectList=list1;
-	fromList = list2;
-	conditionList = list3;
-	groupbyList = null;
-	splitConditionList(conditionList);
+    /**
+     * Constructs a new SQL query object. Uses this constructor when there is no GROUP_BY clause.
+     *
+     * @param projectList is the project list.
+     * @param fromList is the from list.
+     * @param conditionList is the condition list.
+     */
+    public SQLQuery(Vector projectList, Vector fromList, Vector conditionList) {
+        this.projectList = projectList;
+        this.fromList = fromList;
+        this.conditionList = conditionList;
+        this.groupByList = null;
+        splitConditionList(conditionList);
     }
 
-    // 12 july 2003 (whtok)
-    // Constructor to handle no WHERE clause case
-    public SQLQuery(Vector list1,Vector list2){
-        projectList=list1;
-        fromList = list2;
-        conditionList = null;
-        groupbyList = null;
-        joinList = new Vector();
+    /**
+     * Constructs a new SQL query object. Uses this constructor when there is neither WHERE nor
+     * GROUP_BY clause.
+     *
+     * @param projectList is the project list.
+     * @param fromList is the from list.
+     */
+    public SQLQuery(Vector projectList, Vector fromList) {
+        this.projectList = projectList;
+        this.fromList = fromList;
+        this.conditionList = null;
+        this.groupByList = null;
+        splitConditionList(new Vector());
+    }
+
+    /**
+     * Splits the condition list into selection & join predicates.
+     *
+     * @param tempVector is condition list.
+     */
+    private void splitConditionList(Vector tempVector) {
         selectionList = new Vector();
+        joinList = new Vector();
+
+        for (int i = 0; i < tempVector.size(); i++) {
+            Condition cn = (Condition) tempVector.elementAt(i);
+            if (cn.getCondType() == Condition.SELECT) {
+                selectionList.add(cn);
+            } else {
+                joinList.add(cn);
+            }
+        }
     }
 
-
-	/** split the condition list into selection, and join list **/
-
-    protected void splitConditionList(Vector tempVector){
-	selectionList = new Vector();
-	joinList = new Vector();
-	for(int i=0;i<tempVector.size();i++){
-	    Condition cn = (Condition) tempVector.elementAt(i);
-	    if(cn.getOpType() == Condition.SELECT)
-		selectionList.add(cn);
-	    else
-		joinList.add(cn);
-	}
+    /**
+     * Getter for project list.
+     *
+     * @return the project list.
+     */
+    public Vector getProjectList() {
+        return projectList;
     }
 
-
-    public void setIsDistinct(boolean flag){
-	isDistinct = flag;
+    /**
+     * Getter for from list.
+     *
+     * @return the from list.
+     */
+    public Vector getFromList() {
+        return fromList;
     }
 
-    public boolean isDistinct(){
-	return isDistinct;
+    /**
+     * Getter for selection predicates.
+     *
+     * @return the selection predicates.
+     */
+    public Vector getSelectionList() {
+        return selectionList;
     }
 
-
-    public Vector getProjectList(){
-	return projectList;
+    /**
+     * Getter for join predicates.
+     *
+     * @return the join predicates.
+     */
+    public Vector getJoinList() {
+        return joinList;
     }
 
-    public Vector getFromList(){
-	return fromList;
+    /**
+     * Setter for groupBy list.
+     *
+     * @param list is the groupBy list.
+     */
+    public void setGroupByList(Vector list) {
+        groupByList = list;
     }
 
-    public Vector getConditionList(){
-	return conditionList;
+    /**
+     * Getter for groupBy list.
+     *
+     * @return the groupBy list.
+     */
+    public Vector getGroupByList() {
+        return groupByList;
     }
 
-    public Vector getSelectionList(){
-	return selectionList;
+    /**
+     * @return the number of joins in this SQL query.
+     */
+    public int getNumJoin() {
+        if (joinList == null) {
+            return 0;
+        }
+
+        return joinList.size();
     }
-
-    public Vector getJoinList(){
-	return joinList;
-    }
-
-    public void setGroupByList(Vector list){
-	groupbyList = list;
-    }
-
-    public Vector getGroupByList(){
-	return groupbyList;
-    }
-
-    public int getNumJoin(){
-      if ( joinList == null)
-         return 0;
-
-	return joinList.size();
-    }
-
 }

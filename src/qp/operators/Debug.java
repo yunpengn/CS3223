@@ -28,19 +28,19 @@ public class Debug {
      * @param con is the condition to be printed.
      */
     public static void PPrint(Condition con) {
-        Attribute lhs = con.getLhs();
-        Object rhs = con.getRhs();
-        int expressionType = con.getExprType();
+        Attribute lhs = con.getLeft();
+        Object rhs = con.getRight();
+        int expressionType = con.getOperator();
 
         // Prints the lef-hand side of the condition first.
         PPrint(lhs);
 
         // Prints the operator next.
         switch (expressionType) {
-            case Condition.LESSTHAN:
+            case Condition.LESS_THAN:
                 System.out.print("<");
                 break;
-            case Condition.GREATERTHAN:
+            case Condition.GREATER_THAN:
                 System.out.print(">");
                 break;
             case Condition.LTOE:
@@ -58,9 +58,9 @@ public class Debug {
         }
 
         // Prints the right-hand side in the end.
-        if (con.getOpType() == Condition.JOIN) {
+        if (con.getCondType() == Condition.JOIN) {
             PPrint((Attribute) rhs);
-        } else if (con.getOpType() == Condition.SELECT) {
+        } else if (con.getCondType() == Condition.SELECT) {
             System.out.print((String) rhs);
         }
     }
@@ -138,7 +138,7 @@ public class Debug {
      * @param t is the tuple to be printed.
      */
     public static void PPrint(Tuple t) {
-        for (int i = 0; i < t.data().size(); i++) {
+        for (int i = 0; i < t.getData().size(); i++) {
             Object data = t.dataAt(i);
             if (data instanceof Integer) {
                 System.out.print(((Integer) data).intValue() + "\t");

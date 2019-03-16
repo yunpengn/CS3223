@@ -1,130 +1,222 @@
-/** Attibute or column meta data **/
-
-
 package qp.utils;
+
 import java.io.Serializable;
 
-public class Attribute implements Serializable{
+/**
+ * Defines some metadata about an attribute (i.e., a column).
+ */
+public class Attribute implements Serializable {
+    // Data types of an attribute.
+    public static final int INT = 1;
+    public static final int STRING = 2;
+    public static final int REAL = 3;
 
-	/** enumerating type of attribute **/
-    public static final int INT=1;
-    public static final int STRING=2;
-    public static final int REAL=3;
+    // Key types of an attribute.
+    public static final int PK = 1; // primary key
+    public static final int FK = 2; // Foreign key
 
-	/** enumeration of type of key **/
+    // The name of the table to which this attribute belongs.
+    private String tableName;
+    // The column name of this attribute.
+    private String colName;
+    // The getData type of this attribute.
+    private int type;
+    // The key type of this attribute.
+    private int key = -1;
+    // The size (in bytes) of this attribute.
+    private int attrSize;
 
-    public static final int PK=1;   // primary key
-    public static final int FK=2;   // Foreign key
-
-
-    String tblname;        //tabel to which this attribute belongs
-    String colname;         //name of the attribute **/
-    int type;  // whether integer or real or string
-    int key=-1;   // type of the key
-    int attrsize;   // Number of bytes for this attribute
-
-
-    public Attribute(String tbl, String col){
-	tblname=tbl;
-	colname=col;
+    /**
+     * Creates a new attribute.
+     *
+     * @param tbl is the table name.
+     * @param col is the column name.
+     */
+    public Attribute(String tbl, String col) {
+        tableName = tbl;
+        colName = col;
     }
 
-    public Attribute(String tbl, String col, int typ){
-	tblname = tbl;
-	colname = col;
-	type = typ;
+    /**
+     * Creates a new attribute.
+     *
+     * @param tbl is the table name.
+     * @param col is the column name.
+     * @param typ is the getData type.
+     */
+    public Attribute(String tbl, String col, int typ) {
+        tableName = tbl;
+        colName = col;
+        type = typ;
     }
 
-    public Attribute(String tbl, String col, int typ,int keytype){
-	tblname = tbl;
-	colname = col;
-	type = typ;
-	key = keytype;
+    /**
+     * Creates a new attribute.
+     *
+     * @param tbl is the table name.
+     * @param col is the column name.
+     * @param typ is the getData type.
+     * @param keyType is the key type.
+     */
+    public Attribute(String tbl, String col, int typ, int keyType) {
+        tableName = tbl;
+        colName = col;
+        type = typ;
+        key = keyType;
     }
 
-	public Attribute(String tbl, String col, int typ,int keytype,int size){
-		tblname = tbl;
-		colname = col;
-		type = typ;
-		key = keytype;
-		attrsize=size;
+    /**
+     * Creates a new attribute.
+     *
+     * @param tbl is the table name.
+     * @param col is the column name.
+     * @param typ is the getData type.
+     * @param keyType is the key type.
+     * @param size is the size (in bytes).
+     */
+    public Attribute(String tbl, String col, int typ, int keyType, int size) {
+        tableName = tbl;
+        colName = col;
+        type = typ;
+        key = keyType;
+        attrSize = size;
     }
 
-	public void setAttrSize(int size){
-		attrsize=size;
+    /**
+     * Setter for the attribute size.
+     *
+     * @param size is the size (in bytes).
+     */
+    public void setAttrSize(int size) {
+        attrSize = size;
     }
 
-    public int getAttrSize(){
-		return attrsize;
+    /**
+     * Getter for the attribute size.
+     *
+     * @return the size (in bytes).
+     */
+    public int getAttrSize() {
+        return attrSize;
     }
 
-    public void setKeyType(int kt){
-	key =kt;
+    /**
+     * Setter for key type.
+     *
+     * @param kt is the key type.
+     */
+    public void setKeyType(int kt) {
+        key = kt;
     }
 
-    public int getKeyType(){
-	return key;
+    /**
+     * Getter for key type.
+     *
+     * @return the key type.
+     */
+    public int getKeyType() {
+        return key;
     }
 
-    public boolean isPrimaryKey(){
-	if(key==PK)
-	    return true;
-	else
-	    return false;
+    /**
+     * @return whether this attribute is a primary key.
+     */
+    public boolean isPrimaryKey() {
+        return key == PK;
     }
 
-    public boolean isForeignKey(){
-	if(key==FK)
-	    return true;
-	else
-	    return false;
+    /**
+     * @return whether this attribute is a foreign key.
+     */
+    public boolean isForeignKey() {
+        return key == FK;
     }
 
-
-    public void setTabName(String tab){
-	tblname = tab;
+    /**
+     * Setter for table name.
+     *
+     * @param tab is the table name.
+     */
+    public void setTabName(String tab) {
+        tableName = tab;
     }
 
-    public String getTabName(){
-	return tblname;
+    /**
+     * Getter for table name.
+     *
+     * @return the table name.
+     */
+    public String getTabName() {
+        return tableName;
     }
 
-    public void setColName(String col){
-	colname = col;
+    /**
+     * Setter for column name.
+     *
+     * @param col is the column name.
+     */
+    public void setColName(String col) {
+        colName = col;
     }
 
-    public String getColName(){
-	return colname;
+    /**
+     * Getter for column name.
+     *
+     * @return the column name.
+     */
+    public String getColName() {
+        return colName;
     }
 
-    public void setType(int typ){
-	type=typ;
+    /**
+     * Setter for getData type.
+     *
+     * @param typ is the getData type.
+     */
+    public void setType(int typ) {
+        type = typ;
     }
 
-    public int getType(){
-	return type;
+    /**
+     * Getter for getData type.
+     *
+     * @return the getData type.
+     */
+    public int getType() {
+        return type;
     }
 
-    public boolean equals(Attribute attr){
-	if(this.tblname.equals(attr.getTabName()) && this.colname.equals(attr.getColName()))
-	    return true;
-	else
-	    return false;
+    /**
+     * Checks the equality with another object.
+     *
+     * @param other is the other object to be compared with.
+     * @return true if the other object is also of {@link Attribute} type and has the same table name & column name.
+     */
+    @Override
+    public boolean equals(Object other) {
+        if (other == null) {
+            return false;
+        } else if (other instanceof Attribute) {
+            Attribute otherAttr = (Attribute) other;
+            return tableName.equals(otherAttr.tableName) && colName.equals(otherAttr.colName);
+        } else {
+            return false;
+        }
     }
 
-    public Object clone(){
-	String newtbl =  tblname;
-	String newcol =  colname;
-	Attribute newattr = new Attribute(newtbl,newcol);
-	newattr.setType(type);
-	newattr.setKeyType(key);
-	newattr.setAttrSize(attrsize);
-	return newattr;
+    /**
+     * Creates another copy of this attribute.
+     *
+     * @return the newly created copy of this attribute.
+     */
+    @Override
+    public Object clone() {
+        String newTableName = tableName;
+        String newColName = colName;
+        Attribute newAttr = new Attribute(newTableName, newColName);
+        newAttr.setType(type);
+        newAttr.setKeyType(key);
+        newAttr.setAttrSize(attrSize);
+        return newAttr;
     }
-
 }
-
-
-
-
-

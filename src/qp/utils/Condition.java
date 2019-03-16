@@ -1,100 +1,155 @@
-/** represents join/select condition **/
-
-
 package qp.utils;
 
+/**
+ * Represents the join or select condition in a {@link SQLQuery}.
+ */
 public class Condition {
+    // The operator in a condition.
+    public static final int LESS_THAN = 1;
+    public static final int GREATER_THAN = 2;
+    public static final int LTOE = 3;
+    public static final int GTOE = 4;
+    public static final int EQUAL = 5;
+    public static final int NOTEQUAL = 6;
 
-
-	/** enumeration of the op code in the condition **/
-
-    public static final int LESSTHAN=1;
-    public static final int GREATERTHAN=2;
-    public static final int LTOE=3;
-    public static final int GTOE=4;
-    public static final int EQUAL=5;
-    public static final int NOTEQUAL=6;
-
+    // The type of a condition (either select condition or join condition).
     public static final int SELECT = 1;
-    public static final int JOIN =2;
+    public static final int JOIN = 2;
 
-    Attribute lhs;   //left hand side of the condition
-    int optype;      // Wheter select condition or join condition
-    int exprtype;   // Comparision type, equal to/lessthan/greaterthan etc.,
-    Object rhs;   // This is Attribute for Join condition and String for Select Condition
+    // The left side of this condition (must be an attribute).
+    private Attribute left;
+    // The right side of this condition (an attribute for join, but a string for select).
+    private Object right;
+    // The type of this condition (either select condition or join condition).
+    private int condType;
+    // The operator in this condition, such as >, <, =, etc.
+    private int operator;
 
-
-    public Condition(Attribute attr, int type, Object value){
-	lhs=attr;
-	exprtype=type;
-	this.rhs=value;
+    /**
+     * Creates a new condition.
+     *
+     * @param left is the left side of this condition.
+     * @param operator is the operator in this condition.
+     * @param right is the right side of this condition.
+     */
+    public Condition(Attribute left, int operator, Object right) {
+        this.left = left;
+        this.operator = operator;
+        this.right = right;
     }
 
-    public Condition(int type){
-	exprtype = type;
+    /**
+     * Creates a new condition.
+     *
+     * @param operator is the operator in this condition.
+     */
+    public Condition(int operator) {
+        this.operator = operator;
     }
 
-
-
-    public Attribute getLhs(){
-	return lhs;
+    /**
+     * Getter for left side.
+     *
+     * @return the left side of this condition.
+     */
+    public Attribute getLeft() {
+        return left;
     }
 
-    public void setLhs(Attribute attr){
-	lhs = attr;
+    /**
+     * Setter for left side.
+     *
+     * @param attr is the left side of this condition.
+     */
+    public void setLeft(Attribute attr) {
+        left = attr;
     }
 
-
-    public void setOpType(int num){
-	optype = num;
+    /**
+     * Setter for condition type.
+     *
+     * @param num is the type of this condition (either select or join).
+     */
+    public void setCondType(int num) {
+        condType = num;
     }
 
-    public int getOpType(){
-	return optype;
+    /**
+     * Getter for condition type.
+     *
+     * @return the type of this condition (either select or join).
+     */
+    public int getCondType() {
+        return condType;
     }
 
-    public void setExprType(int num){
-	exprtype = num;
-    }
-    public int getExprType(){
-	return exprtype;
-    }
-
-
-    public Object getRhs(){
-	return rhs;
+    /**
+     * Setter for operator.
+     *
+     * @param num is the operator in this condition.
+     */
+    public void setOperator(int num) {
+        operator = num;
     }
 
-    public void setRhs(Object value){
-	rhs = value;
+    /**
+     * Getter for operator.
+     *
+     * @return the operator in this condition.
+     */
+    public int getOperator() {
+        return operator;
     }
 
-    public void flip(){
-	if(optype == JOIN){
-	    Object temp = lhs;
-	    lhs = (Attribute) rhs;
-	    rhs = temp;
-	}
+    /**
+     * Setter for right side.
+     *
+     * @param value is the right side of this condition.
+     */
+    public void setRight(Object value) {
+        right = value;
     }
 
-    public Object clone(){
-	Attribute newlhs =(Attribute) lhs.clone();
-	Object newrhs;
+    /**
+     * Getter for right side.
+     *
+     * @return the right side of this condition.
+     */
+    public Object getRight() {
+        return right;
+    }
 
-	if(optype == SELECT)
-	    newrhs = (String) rhs;
-	else
-	    newrhs = (Attribute) ((Attribute)rhs).clone();
-	Condition newcn = new Condition(newlhs,exprtype,newrhs);
-	newcn.setOpType(optype);
-	return newcn;
+    /**
+     * Flips a join condition by changing its left & right side.
+     *
+     * @implNote this is only applicable for a join condition.
+     */
+    public void flip() {
+        if (condType != JOIN) {
+            return;
+        }
+        Attribute temp = left;
+        left = (Attribute) right;
+        right = temp;
+    }
+
+    /**
+     * Creates a copy of this condition.
+     *
+     * @return the copy.
+     */
+    @Override
+    public Object clone() {
+        Attribute newLeft = (Attribute) left.clone();
+        Object newRight;
+        if (condType == SELECT) {
+            newRight = right;
+        } else {
+            newRight = ((Attribute) right).clone();
+        }
+
+        Condition newCond = new Condition(newLeft, operator, newRight);
+        newCond.setCondType(condType);
+        return newCond;
     }
 }
-
-
-
-
-
-
-
-

@@ -123,14 +123,14 @@ conditionlist ::= conditionlist:clist COMMA condition:c
 
 condition::= attribute:at op:o STRINGLIT:s
 	     {:
-		Condition c= new Condition(at,o.getExprType(),s.text());
-		c.setOpType(Condition.SELECT);
+		Condition c= new Condition(at,o.getOperator(),s.text());
+		c.setCondType(Condition.SELECT);
 		RESULT=c;
 	     :}
 	     |attribute:a1 op:o attribute:a2
 	     {:
-		Condition c= new Condition(a1,o.getExprType(),a2);
-		c.setOpType(Condition.JOIN);
+		Condition c= new Condition(a1,o.getOperator(),a2);
+		c.setCondType(Condition.JOIN);
 		RESULT=c;
 	      :}
 		|attribute:at error:p
@@ -159,11 +159,11 @@ attribute::= ID:i1 DOT ID:i2
 op::=
 	LESSTHAN
 	{:
-	RESULT=new Condition(Condition.LESSTHAN);
+	RESULT=new Condition(Condition.LESS_THAN);
 	:}
 	|GREATERTHAN
 	{:
-	RESULT=new Condition(Condition.GREATERTHAN);
+	RESULT=new Condition(Condition.GREATER_THAN);
 	:}
 	|LTOE
 	{:
