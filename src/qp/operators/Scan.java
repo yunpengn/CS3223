@@ -10,7 +10,7 @@ import qp.utils.Schema;
 import qp.utils.Tuple;
 
 /**
- * Defines the scan operator, which reads data from a file by scanning.
+ * Defines the scan operator, which reads getData from a file by scanning.
  */
 public class Scan extends Operator {
     // The name of the file being scanned

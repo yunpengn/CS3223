@@ -138,7 +138,7 @@ public class Debug {
      * @param t is the tuple to be printed.
      */
     public static void PPrint(Tuple t) {
-        for (int i = 0; i < t.data().size(); i++) {
+        for (int i = 0; i < t.getData().size(); i++) {
             Object data = t.dataAt(i);
             if (data instanceof Integer) {
                 System.out.print(((Integer) data).intValue() + "\t");

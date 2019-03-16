@@ -14,7 +14,7 @@ import qp.utils.Attribute;
 import qp.utils.Schema;
 
 /**
- * Generates serialized schema files like <pre>XXXX.md</pre> and data files in textual format
+ * Generates serialized schema files like <pre>XXXX.md</pre> and getData files in textual format
  * like <pre>XXXX.txt</pre>.
  */
 public class RandomDB {
@@ -92,7 +92,7 @@ public class RandomDB {
                 StringTokenizer tokenizer = new StringTokenizer(line);
                 // Gets the column name.
                 String colName = tokenizer.nextToken();
-                // Gets the data type.
+                // Gets the getData type.
                 dataType[i] = tokenizer.nextToken();
 
                 int type;
@@ -104,7 +104,7 @@ public class RandomDB {
                     type = Attribute.REAL;
                 } else {
                     type = -1;
-                    System.err.println("invalid data type");
+                    System.err.println("invalid getData type");
                     System.exit(1);
                 }
 
@@ -145,7 +145,7 @@ public class RandomDB {
             outMeta.writeObject(schema);
             outMeta.close();
 
-            // Generates the data and outputs in <pre>XXXX.txt</pre> file.
+            // Generates the getData and outputs in <pre>XXXX.txt</pre> file.
             for (i = 0; i < numOfTuples; i++) {
                 System.out.println("input table generation: " + i);
 

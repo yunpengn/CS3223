@@ -19,7 +19,7 @@ public class Attribute implements Serializable {
     private String tableName;
     // The column name of this attribute.
     private String colName;
-    // The data type of this attribute.
+    // The getData type of this attribute.
     private int type;
     // The key type of this attribute.
     private int key = -1;
@@ -42,7 +42,7 @@ public class Attribute implements Serializable {
      *
      * @param tbl is the table name.
      * @param col is the column name.
-     * @param typ is the data type.
+     * @param typ is the getData type.
      */
     public Attribute(String tbl, String col, int typ) {
         tableName = tbl;
@@ -55,7 +55,7 @@ public class Attribute implements Serializable {
      *
      * @param tbl is the table name.
      * @param col is the column name.
-     * @param typ is the data type.
+     * @param typ is the getData type.
      * @param keyType is the key type.
      */
     public Attribute(String tbl, String col, int typ, int keyType) {
@@ -70,7 +70,7 @@ public class Attribute implements Serializable {
      *
      * @param tbl is the table name.
      * @param col is the column name.
-     * @param typ is the data type.
+     * @param typ is the getData type.
      * @param keyType is the key type.
      * @param size is the size (in bytes).
      */
@@ -169,18 +169,18 @@ public class Attribute implements Serializable {
     }
 
     /**
-     * Setter for data type.
+     * Setter for getData type.
      *
-     * @param typ is the data type.
+     * @param typ is the getData type.
      */
     public void setType(int typ) {
         type = typ;
     }
 
     /**
-     * Getter for data type.
+     * Getter for getData type.
      *
-     * @return the data type.
+     * @return the getData type.
      */
     public int getType() {
         return type;

@@ -81,10 +81,10 @@ public class Schema implements Serializable {
     }
 
     /**
-     * Checks whether a certain attribute exists in the schema and retrieves its data type.
+     * Checks whether a certain attribute exists in the schema and retrieves its getData type.
      *
      * @param target is the attribute to be checked.
-     * @return the data type of the attribute if exists; -1 otherwise.
+     * @return the getData type of the attribute if exists; -1 otherwise.
      */
     public int typeOf(Attribute target) {
         for (int i = 0; i < attributes.size(); i++) {
@@ -97,10 +97,10 @@ public class Schema implements Serializable {
     }
 
     /**
-     * Retrieves the data type of the attribute at a given index.
+     * Retrieves the getData type of the attribute at a given index.
      *
      * @param attrAt is the index of the attribute.
-     * @return the data type of the attribute.
+     * @return the getData type of the attribute.
      */
     public int typeOf(int attrAt) {
         return attributes.elementAt(attrAt).getType();

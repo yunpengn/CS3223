@@ -67,7 +67,7 @@ public class ConvertTxtToTbl {
                         data.add(dataElement);
                         break;
                     default:
-                        System.err.println("Invalid data type");
+                        System.err.println("Invalid getData type");
                         System.exit(1);
                 }
             }
