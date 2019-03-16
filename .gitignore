@@ -2,8 +2,14 @@
 *.class
 out/
 
+# Query input files
+classes/*.md
+classes/*.txt
+classes/*.stat
+classes/*.tbl
+
 # Query output files
-*.out
+classes/*.out
 
 # Log file
 *.log
