@@ -1,7 +1,15 @@
-# Compilation output folders
-class/
-classes/
+# Compilation output folders & files
+*.class
 out/
+
+# Query input files
+classes/*.md
+classes/*.txt
+classes/*.stat
+classes/*.tbl
+
+# Query output files
+classes/*.out
 
 # Log file
 *.log

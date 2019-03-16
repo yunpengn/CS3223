@@ -22,7 +22,20 @@ javac -d ${COMPONENT}/classes ${COMPONENT}/src/qp/utils/*.java
 javac -d ${COMPONENT}/classes ${COMPONENT}/src/qp/parser/*.java
 javac -d ${COMPONENT}/classes ${COMPONENT}/src/qp/operators/*.java
 javac -d ${COMPONENT}/classes ${COMPONENT}/src/qp/optimizer/*.java
-javac -d ${COMPONENT}/classes ${COMPONENT}/testcases/*.java
+javac -d ${COMPONENT}/classes ${COMPONENT}/test/*.java
 javac -d ${COMPONENT}/classes ${COMPONENT}/src/QueryMain.java
 
 echo "Project has been built successfully!"
+
+echo "Begin to prepare fixtures for test cases"
+
+cd classes/
+for file in *.det; do
+    tableName=${file%.det}
+    echo "Generates fixtures for table named ${tableName}:"
+    java RandomDB ${tableName} 100
+    java ConvertTxtToTbl ${tableName}
+    echo ""
+done
+
+echo "Fixtures for test cases have been generated successfully!"
