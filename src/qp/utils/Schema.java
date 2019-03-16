@@ -1,141 +1,180 @@
-/**
- * schema of the table/result, and is attached to every operator
- **/
-
-
 package qp.utils;
 
 import java.io.Serializable;
 import java.util.Vector;
 
+/**
+ * Represents the schema of a table or query result. It is attached to every operator.
+ */
 public class Schema implements Serializable {
+    // The attributes belonging to this schema.
+    private Vector<Attribute> attributes;
+    // The size (in bytes) of each tuple.
+    private int tupleSize;
 
-    Vector attset;         // the attributes belong to this schema
-    int tuplesize; // Number of bytes required for this tuple (size of record)
-
-    public Schema(Vector colset) {
-
-        attset = colset;
-
+    /**
+     * Creates a new schema with its attributes.
+     *
+     * @param attributes are the attributes of this schema.
+     */
+    public Schema(Vector<Attribute> attributes) {
+        this.attributes = attributes;
     }
 
+    /**
+     * Setter for tuple size.
+     *
+     * @param size is the size (in bytes) of each tuple.
+     */
     public void setTupleSize(int size) {
-        tuplesize = size;
+        tupleSize = size;
     }
 
+    /**
+     * Getter for tuple size.
+     *
+     * @return the size (in bytes) of each tuple.
+     */
     public int getTupleSize() {
-        return tuplesize;
+        return tupleSize;
     }
 
+    /**
+     * @return the number of columns in this schema.
+     */
     public int getNumCols() {
-        return attset.size();
+        return attributes.size();
     }
 
-
+    /**
+     * Adds a new attribute to this schema.
+     *
+     * @param attr is the attribute to be added.
+     */
     public void add(Attribute attr) {
-        attset.add(attr);
+        attributes.add(attr);
     }
 
-    public Vector getAttList() {
-        return attset;
-    }
-
-
+    /**
+     * Retrieves the attribute at a given index. O(1) operation.
+     *
+     * @param i is the index of the required attribute.
+     * @return the attribute at that index.
+     */
     public Attribute getAttribute(int i) {
-        return (Attribute) attset.elementAt(i);
+        return attributes.elementAt(i);
     }
 
-    public int indexOf(Attribute tarattr) {
-        for (int i = 0; i < attset.size(); i++) {
-            Attribute attr = (Attribute) attset.elementAt(i);
-            if (attr.equals(tarattr)) {
+    /**
+     * Checks the index of a given attribute. O(n) operation.
+     *
+     * @param attr is the attribute to be checked.
+     * @return the index of the attribute.
+     */
+    public int indexOf(Attribute attr) {
+        for (int i = 0; i < attributes.size(); i++) {
+            if (attributes.elementAt(i).equals(attr)) {
                 return i;
             }
         }
         return -1;
     }
 
-    public int typeOf(Attribute tarattr) {
-        for (int i = 0; i < attset.size(); i++) {
-            Attribute attr = (Attribute) attset.elementAt(i);
-            if (attr.equals(tarattr)) {
+    /**
+     * Checks whether a certain attribute exists in the schema and retrieves its data type.
+     *
+     * @param target is the attribute to be checked.
+     * @return the data type of the attribute if exists; -1 otherwise.
+     */
+    public int typeOf(Attribute target) {
+        for (int i = 0; i < attributes.size(); i++) {
+            Attribute attr = attributes.elementAt(i);
+            if (attr.equals(target)) {
                 return attr.getType();
             }
         }
         return -1;
     }
 
+    /**
+     * Retrieves the data type of the attribute at a given index.
+     *
+     * @param attrAt is the index of the attribute.
+     * @return the data type of the attribute.
+     */
     public int typeOf(int attrAt) {
-        Attribute attr = (Attribute) attset.elementAt(attrAt);
-        return attr.getType();
+        return attributes.elementAt(attrAt).getType();
     }
 
-
-    /** Checks whether given attribute is present in this
-     Schema or not
-     **/
-
-    public boolean contains(Attribute tarattr) {
-        for (int i = 0; i < attset.size(); i++) {
-            Attribute attr = (Attribute) attset.elementAt(i);
-            if (attr.equals(tarattr)) {
+    /**
+     * Checks whether given attribute is present in this schema.
+     *
+     * @param target is the index of the attribute.
+     * @return true if it exists.
+     */
+    public boolean contains(Attribute target) {
+        for (Attribute attr: attributes) {
+            if (attr.equals(target)) {
                 return true;
             }
         }
         return false;
     }
 
+    /**
+     * Calculates the schema of resultant join operation. It does not consider the elimination
+     * of duplicate columns.
+     *
+     * @param right is the other schema to be joined with.
+     * @return the resultant schema.
+     */
+    public Schema joinWith(Schema right) {
+        Vector<Attribute> newAttributes = new Vector<>(attributes);
+        newAttributes.addAll(right.attributes);
 
-    /**The schema of resultant join operation, Not considered the elimination of duplicate Column **/
-
-    public Schema joinWith(Schema right) { //, Attribute leftAttr, Attribute rightAttr){
-        Vector newSchema = new Vector(this.attset);
-        newSchema.addAll(right.getAttList());
-
-        int newtupsize = this.getTupleSize() + right.getTupleSize();
-        Schema newSche = new Schema(newSchema);
-        newSche.setTupleSize(newtupsize);
-        return newSche;
-        //return new Schema(newSchema);
+        Schema Schema = new Schema(newAttributes);
+        Schema.setTupleSize(getTupleSize() + right.getTupleSize());
+        return Schema;
     }
 
+    /**
+     * Gets a sub-schema with a given list of attributes only. This is useful for project operator.
+     *
+     * @param attrList is the list of attributes to be included.
+     * @return the sub-schema.
+     */
+    public Schema subSchema(Vector attrList) {
+        Vector<Attribute> newVec = new Vector<>();
+        int newTupleSize = 0;
 
-    /** To get schema due to result of project operation
-     attrlist is the attirbuted that are projected
-     **/
-
-    public Schema subSchema(Vector attrlist) {
-        Vector newVec = new Vector();
-        int newtupsize = 0;
-        for (int i = 0; i < attrlist.size(); i++) {
-            Attribute resAttr = (Attribute) attrlist.elementAt(i);
+        for (int i = 0; i < attrList.size(); i++) {
+            Attribute resAttr = (Attribute) attrList.elementAt(i);
             int baseIndex = this.indexOf(resAttr);
             Attribute baseAttr = this.getAttribute(baseIndex);
             newVec.add(baseAttr);
-            newtupsize = newtupsize + baseAttr.getAttrSize();
+            newTupleSize = newTupleSize + baseAttr.getAttrSize();
         }
-        Schema newsche = new Schema(newVec);
-        newsche.setTupleSize(newtupsize);
-        return newsche;
+
+        Schema newSchema = new Schema(newVec);
+        newSchema.setTupleSize(newTupleSize);
+        return newSchema;
     }
 
-
+    /**
+     * Creates a new copy of the schema.
+     *
+     * @return the copy of this schema.
+     */
+    @Override
     public Object clone() {
-        Vector newvec = new Vector();
-        for (int i = 0; i < attset.size(); i++) {
-            Attribute newatt = (Attribute) ((Attribute) attset.elementAt(i)).clone();
-            newvec.add(newatt);
+        Vector<Attribute> newAttr = new Vector<>();
+        for (int i = 0; i < attributes.size(); i++) {
+            Attribute attr = (Attribute) attributes.elementAt(i).clone();
+            newAttr.add(attr);
         }
-        Schema newsche = new Schema(newvec);
-        newsche.setTupleSize(tuplesize);
 
-        return newsche;
-        //return new Schema(newvec);
+        Schema newSchema = new Schema(newAttr);
+        newSchema.setTupleSize(tupleSize);
+        return newSchema;
     }
-
 }
-
-
-
-
-
