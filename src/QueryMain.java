@@ -11,7 +11,7 @@ import qp.operators.Debug;
 import qp.operators.Operator;
 import qp.optimizer.BufferManager;
 import qp.optimizer.RandomOptimizer;
-import qp.parser.Scaner;
+import qp.parser.Scanner;
 import qp.parser.parser;
 import qp.utils.Attribute;
 import qp.utils.Batch;
@@ -66,7 +66,7 @@ public class QueryMain {
         }
 
         // Scans the query.
-        Scaner sc = new Scaner(source);
+        Scanner sc = new Scanner(source);
         parser p = new parser();
         p.setScanner(sc);
 

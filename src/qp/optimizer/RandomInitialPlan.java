@@ -106,7 +106,7 @@ public class RandomInitialPlan {
                 op1.setSchema(schema);
                 ois.close();
             } catch (Exception e) {
-                System.err.println("RandomInitialPlan:Error reading Schema of the table" + fileName);
+                System.err.println("RandomInitialPlan: Error reading Schema of the table " + fileName);
                 System.exit(1);
             }
             nameToOpr.put(tableName, op1);
