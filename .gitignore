@@ -1,7 +1,9 @@
-# Compilation output folders
-class/
-classes/
+# Compilation output folders & files
+*.class
 out/
+
+# Query output files
+*.out
 
 # Log file
 *.log

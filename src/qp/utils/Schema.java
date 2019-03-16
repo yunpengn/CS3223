@@ -8,9 +8,9 @@ import java.util.Vector;
  */
 public class Schema implements Serializable {
     // The attributes belonging to this schema.
-    private Vector<Attribute> attributes;
+    public Vector<Attribute> attributes;
     // The size (in bytes) of each tuple.
-    private int tupleSize;
+    public int tupleSize;
 
     /**
      * Creates a new schema with its attributes.
