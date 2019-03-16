@@ -1,6 +1,3 @@
-/** performs randomized optimization, iterative improvement algorithm **/
-
-
 package qp.optimizer;
 
 import java.util.Vector;
@@ -18,455 +15,453 @@ import qp.utils.Condition;
 import qp.utils.RandNumb;
 import qp.utils.SQLQuery;
 
-public class RandomOptimizer{
+/**
+ * Performs randomized optimization, and iterative improvement algorithm.
+ */
+public class RandomOptimizer {
+    // Enumeration of different ways to find the neighbor plan.
 
-	/** enumeration of different ways to find the neighbor plan **/
+    // Selects neighbor by changing a method for an operator.
+    private static final int METHOD_CHOICE = 0;
+    // Selects neighbor by rearranging the operators by commutative rule.
+    private static final int COMMUTATIVE = 1;
+    // Selects neighbor by rearranging the operators by associative rule.
+    private static final int ASSOCIATIVE = 2;
+    // Number of alternative methods available for a node as specified above.
+    private static final int NUM_OF_CHOICES = 3;
 
-    public static final int  METHODCHOICE =0;  //selecting neighbor by changing a method for an operator
-    public static final int COMMUTATIVE =1;   // by rearranging the operators by commutative rule
-    public static final int ASSOCIATIVE =2;  // rearranging the operators by associative rule
+    // Vector of Vectors of Select + From + Where + GroupBy.
+    private SQLQuery sqlQuery;
 
-    /** Number of altenative methods available for a node as specified above**/
+    // Number of joins in this query plan.
+    private int numOfJoin;
 
-    public static final int NUMCHOICES = 3;
-
-
-    SQLQuery sqlquery;     // Vector of Vectors of Select + From + Where + GroupBy
-    int numJoin;          // Number of joins in this query plan
-
-
-
-	/** constructor **/
-
-    public RandomOptimizer(SQLQuery sqlquery){
-	this.sqlquery = sqlquery;
+    /**
+     * Constructor of RandomOptimizer.
+     */
+    public RandomOptimizer(SQLQuery sqlQuery) {
+        this.sqlQuery = sqlQuery;
     }
 
+    /**
+     * Randomly selects a neighbor.
+     *
+     * @param root is the root of the query plan tree.
+     * @return the neighboring plan.
+     */
+    private Operator getNeighbor(Operator root) {
+        // Randomly selects a node to be altered to get the neighbour.
+        int nodeNum = RandNumb.randInt(0, numOfJoin - 1);
 
+        // Randomly selects type of alteration: Change Method / Associative / Commutative.
+        int changeType = RandNumb.randInt(0, NUM_OF_CHOICES - 1);
+        Operator neighbor = null;
 
-
-    /** Randomly selects a neighbour **/
-
-
-    protected Operator getNeighbor(Operator root){
-	//Randomly select a node to be altered to get the neighbour
-	int nodeNum = RandNumb.randInt(0,numJoin-1);
-
-	//Randomly select type of alteration: Change Method/Associative/Commutative
-	int changeType = RandNumb.randInt(0,NUMCHOICES-1);
-	Operator neighbor=null;
-
-	switch(changeType){
-	case  METHODCHOICE:   // Select a neighbour by changing the method type
-	    neighbor = neighborMeth(root,nodeNum);
-	    break;
-	case COMMUTATIVE:
-	    neighbor=neighborCommut(root,nodeNum);
-	    break;
-	case ASSOCIATIVE:
-	    neighbor=neighborAssoc(root,nodeNum);
-	    break;
-	}
-	return neighbor;
-    }
-
-
-
-    /** implementation of Iterative Improvement Algorithm
-     ** for Randomized optimization of Query Plan
-     **/
-
-    public Operator getOptimizedPlan(){
-
-	/** get an initial plan for the given sql query **/
-
-	RandomInitialPlan rip = new RandomInitialPlan(sqlquery);
-	 numJoin = rip.getNumJoins();
-
-	int MINCOST = Integer.MAX_VALUE;
-	Operator finalPlan = null;
-
-
-	/** NUMTER is number of times random restart **/
-
-	int NUMITER ;
-	    if(numJoin!=0){
-	      NUMITER = 2 *numJoin;
-	    }else{
-		NUMITER=1;
-	    }
-
-	/** Randomly restart the gradient descent until
-	 ** the maximum specified number of random restarts (NUMITER)
-	 ** has satisfied
-	 **/
-
-	for(int j=0;j<NUMITER;j++){
-	    Operator initPlan = rip.prepareInitialPlan();
-
-	    modifySchema(initPlan);
-	    System.out.println("-----------initial Plan-------------");
-	    Debug.PPrint(initPlan);
-	    PlanCost pc = new PlanCost();
-	    int initCost = pc.getCost(initPlan);
-	    System.out.println(initCost);
-
-	    boolean flag = true;
-	    int minNeighborCost=initCost; //just initialization purpose;
-	    Operator minNeighbor=initPlan; //just initialization purpose;
-	    if(numJoin !=0){
-
-		while(flag){   // flag = false when local minimum is reached
- System.out.println("---------------while--------");
-		    Operator initPlanCopy = (Operator) initPlan.clone();
-		    minNeighbor = getNeighbor(initPlanCopy);
-
-		    System.out.println("--------------------------neighbor---------------");
-		    Debug.PPrint(minNeighbor);
-		    pc = new PlanCost();
-		    minNeighborCost = pc.getCost(minNeighbor);
-		    System.out.println("  "+minNeighborCost);
-
-		    /** In this loop we consider from the
-		     ** possible neighbors (randomly selected)
-		     ** and take the minimum among for next step
-		     **/
-
-		    for(int i=1;i<2*numJoin;i++){
-			initPlanCopy= (Operator) initPlan.clone();
-			Operator neighbor = getNeighbor(initPlanCopy);
-			System.out.println("------------------neighbor--------------");
-			Debug.PPrint(neighbor);
-			pc=new PlanCost();
-			int neighborCost = pc.getCost(neighbor);
-			System.out.println(neighborCost);
-
-
-			if(neighborCost<minNeighborCost){
-			    minNeighbor = neighbor;
-			    minNeighborCost = neighborCost;
-			}
-			// System.out.println("-----------------for-------------");
-		    }
-		    if(minNeighborCost<initCost){
-			initPlan = minNeighbor;
-			initCost = minNeighborCost;
-		    }else{
-			minNeighbor = initPlan;
-			minNeighborCost = initCost;
-
-			flag = false;   // local minimum reached
-		    }
-		}
-		System.out.println("------------------local minimum--------------");
-		Debug.PPrint(minNeighbor);
-		System.out.println(" "+minNeighborCost);
-
-	    }
-	    if(minNeighborCost<MINCOST){
-		MINCOST = minNeighborCost;
-		finalPlan = minNeighbor;
-
-	    }
-	}
-	System.out.println("\n\n\n");
-	System.out.println("---------------------------Final Plan----------------");
-	Debug.PPrint(finalPlan);
-	System.out.println("  "+MINCOST);
-	return finalPlan;
-    }
-
-
-    /** Selects a random method choice for join wiht number joinNum
-     **  e.g., Nested loop join, Sort-Merge Join, Hash Join etc..,
-     ** returns the modified plan
-     **/
-
-    protected Operator neighborMeth(Operator root, int joinNum){
-	System.out.println("------------------neighbor by method change----------------");
-	int numJMeth = JoinType.numJoinTypes();
-        if (numJMeth > 1) {
-	/** find the node that is to be altered **/
-	Join node = (Join) findNodeAt(root,joinNum);
-	int prevJoinMeth = node.getJoinType();
-	int joinMeth = RandNumb.randInt(0,numJMeth-1);
-	while(joinMeth == prevJoinMeth){
-	    joinMeth = RandNumb.randInt(0,numJMeth-1);
-	}
-	node.setJoinType(joinMeth);
+        switch (changeType) {
+            // Selects a neighbour by changing the method type.
+            case METHOD_CHOICE:
+                neighbor = neighborMethod(root, nodeNum);
+                break;
+            case COMMUTATIVE:
+                neighbor = neighborCommutativity(root, nodeNum);
+                break;
+            case ASSOCIATIVE:
+                neighbor = neighborAssociativity(root, nodeNum);
+                break;
         }
-	return root;
+        return neighbor;
     }
 
+    /**
+     * Implements Iterative Improvement Algorithm or Randomized optimization of Query Plan.
+     *
+     * @return the optimized plan.
+     */
+    public Operator getOptimizedPlan() {
+        // Gets an initial plan for the given sql query.
+        RandomInitialPlan rip = new RandomInitialPlan(sqlQuery);
+        numOfJoin = rip.getNumJoins();
 
+        int minCost = Integer.MAX_VALUE;
+        Operator finalPlan = null;
 
-    /** Applies join Commutativity for the join numbered with joinNum
-     **  e.g.,  A X B  is changed as B X A
-     ** returns the modifies plan
-     **/
+        // The number of times of random restart.
+        int numOfRestart;
+        if (numOfJoin != 0) {
+            numOfRestart = 2 * numOfJoin;
+        } else {
+            numOfRestart = 1;
+        }
 
-    protected Operator neighborCommut(Operator root, int joinNum){
-	System.out.println("------------------neighbor by commutative---------------");
-	/** find the node to be altered**/
-	Join node = (Join) findNodeAt(root,joinNum);
-	Operator left = node.getLeft();
-	Operator right = node.getRight();
-	node.setLeft(right);
-	node.setRight(left);
-	/*** also flip the condition i.e.,  A X a1b1 B   = B X b1a1 A  **/
-	node.getCondition().flip();
-	//Schema newschem = left.getSchema().joinWith(right.getSchema());
-	// node.setSchema(newschem);
+        // Randomly restarts the gradient descent until the maximum specified number
+        // of random restarts (numOfRestart) has satisfied.
+        for (int j = 0; j < numOfRestart; j++) {
+            Operator initPlan = rip.prepareInitialPlan();
+            modifySchema(initPlan);
 
-	/** modify the schema before returning the root **/
-	modifySchema(root);
-	return root;
+            System.out.println("-----------initial Plan-------------");
+            Debug.PPrint(initPlan);
+
+            PlanCost pc = new PlanCost();
+            int initCost = pc.getCost(initPlan);
+            System.out.println(initCost);
+
+            boolean flag = true;
+            // Just for initialization purpose.
+            int minNeighborCost = initCost;
+            Operator minNeighbor = initPlan;
+
+            if (numOfJoin != 0) {
+                // flag = false when local minimum is reached.
+                while (flag) {
+                    System.out.println("---------------while--------");
+
+                    Operator initPlanCopy = (Operator) initPlan.clone();
+                    minNeighbor = getNeighbor(initPlanCopy);
+
+                    System.out.println("--------------------------neighbor---------------");
+                    Debug.PPrint(minNeighbor);
+
+                    pc = new PlanCost();
+                    minNeighborCost = pc.getCost(minNeighbor);
+                    System.out.println("  " + minNeighborCost);
+
+                    // In this loop we consider from the possible neighbors (randomly selected)
+                    // and take the minimum among for next step.
+                    for (int i = 1; i < 2 * numOfJoin; i++) {
+                        initPlanCopy = (Operator) initPlan.clone();
+                        Operator neighbor = getNeighbor(initPlanCopy);
+
+                        System.out.println("------------------neighbor--------------");
+                        Debug.PPrint(neighbor);
+
+                        pc = new PlanCost();
+                        int neighborCost = pc.getCost(neighbor);
+                        System.out.println(neighborCost);
+
+                        if (neighborCost < minNeighborCost) {
+                            minNeighbor = neighbor;
+                            minNeighborCost = neighborCost;
+                        }
+                    }
+                    if (minNeighborCost < initCost) {
+                        initPlan = minNeighbor;
+                        initCost = minNeighborCost;
+                    } else {
+                        minNeighbor = initPlan;
+                        minNeighborCost = initCost;
+
+                        // Reaches local minimum.
+                        flag = false;
+                    }
+                }
+                System.out.println("------------------local minimum--------------");
+                Debug.PPrint(minNeighbor);
+                System.out.println(" " + minNeighborCost);
+            }
+            if (minNeighborCost < minCost) {
+                minCost = minNeighborCost;
+                finalPlan = minNeighbor;
+            }
+        }
+        System.out.println("\n\n\n");
+        System.out.println("---------------------------Final Plan----------------");
+        Debug.PPrint(finalPlan);
+        System.out.println("  " + minCost);
+
+        return finalPlan;
     }
 
-    /** Applies join Associativity for the join numbered with joinNum
-     **  e.g., (A X B) X C is changed to A X (B X C)
-     **  returns the modifies plan
-     **/
+    /**
+     * Selects a random method choice for join with joinNum. i.e., Nested Loop Join,
+     * Sort-Merge Join, Hash Join, etc.
+     *
+     * @param root    is the root of the query plan tree.
+     * @param joinNum is the randomly selected node number.
+     * @return the modified plan.
+     */
+    private Operator neighborMethod(Operator root, int joinNum) {
+        System.out.println("------------------neighbor by method change----------------");
 
-    protected Operator neighborAssoc(Operator root,int joinNum){
-	/** find the node to be altered**/
-	Join op =(Join) findNodeAt(root,joinNum);
-	//Join op = (Join) joinOpList.elementAt(joinNum);
-	Operator left = op.getLeft();
-	Operator right = op.getRight();
-
-	if(left.getOpType() == OpType.JOIN && right.getOpType() != OpType.JOIN){
-	    transformLefttoRight(op,(Join) left);
-
-	}else if(left.getOpType() != OpType.JOIN && right.getOpType()==OpType.JOIN){
-	    transformRighttoLeft(op,(Join) right);
-	}else if(left.getOpType()==OpType.JOIN && right.getOpType()==OpType.JOIN){
-	    if(RandNumb.flipCoin())
-		transformLefttoRight(op,(Join) left);
-	    else
-		transformRighttoLeft(op,(Join) right);
-	}else{
-	    // The join is just A X B,  therefore Association rule is not applicable
-	}
-
-	/** modify the schema before returning the root **/
-	modifySchema(root);
-	return root;
+        int numJoinMethods = JoinType.numJoinTypes();
+        if (numJoinMethods > 1) {
+            // Finds the node that is to be altered.
+            Join node = (Join) findNodeAt(root, joinNum);
+            int prevJoinMethod = node.getJoinType();
+            int joinMethod = RandNumb.randInt(0, numJoinMethods - 1);
+            while (joinMethod == prevJoinMethod) {
+                joinMethod = RandNumb.randInt(0, numJoinMethods - 1);
+            }
+            node.setJoinType(joinMethod);
+        }
+        return root;
     }
 
+    /**
+     * Applies join Commutativity for the join numbered with joinNum.
+     * i.e., A X B  is changed as B X A
+     *
+     * @param root    is the root of the query plan tree.
+     * @param joinNum is the randomly selected node number.
+     * @return the modified plan.
+     */
+    private Operator neighborCommutativity(Operator root, int joinNum) {
+        System.out.println("------------------neighbor by commutative---------------");
 
+        // Finds the node to be altered.
+        Join node = (Join) findNodeAt(root, joinNum);
+        Operator left = node.getLeft();
+        Operator right = node.getRight();
+        node.setLeft(right);
+        node.setRight(left);
 
-    /** This is given plan (A X B) X C **/
+        // Flips the condition. i.e.,  A X a1b1 B = B X b1a1 A
+        node.getCondition().flip();
+        // Schema newschem = left.getSchema().joinWith(right.getSchema());
+        // node.setSchema(newschem);
 
-
-    protected void transformLefttoRight(Join op, Join left){
-	System.out.println("------------------Left to Right neighbor--------------");
-	Operator right = op.getRight();
-	Operator leftleft = left.getLeft();
-	Operator leftright = left.getRight();
-	Attribute leftAttr = op.getCondition().getLhs();
-	Join temp;
-
-	/** CASE 1 :  ( A X a1b1 B) X b4c4  C     =  A X a1b1 (B X b4c4 C)
-	 ** a1b1,  b4c4 are the join conditions at that join operator
-	 **/
-
-	if(leftright.getSchema().contains(leftAttr)){
-	    System.out.println("----------------CASE 1-----------------");
-
-	    temp = new Join(leftright,right,op.getCondition(),OpType.JOIN);
-	    temp.setJoinType(op.getJoinType());
-	    temp.setNodeIndex(op.getNodeIndex());
-	    op.setLeft(leftleft);
-	    op.setJoinType(left.getJoinType());
-	    op.setNodeIndex(left.getNodeIndex());
-	    op.setRight(temp);
-	    op.setCondition(left.getCondition());
-
-	}else{
-	    System.out.println("--------------------CASE 2---------------");
-	    /**CASE 2:   ( A X a1b1 B) X a4c4  C     =  B X b1a1 (A X a4c4 C)
-	     ** a1b1,  a4c4 are the join conditions at that join operator
-	     **/
-	    temp = new Join(leftleft,right,op.getCondition(),OpType.JOIN);
-	    temp.setJoinType(op.getJoinType());
-	    temp.setNodeIndex(op.getNodeIndex());
-	    op.setLeft(leftright);
-	    op.setRight(temp);
-	    op.setJoinType(left.getJoinType());
-	    op.setNodeIndex(left.getNodeIndex());
-	    Condition newcond = left.getCondition();
-	    newcond.flip();
-	    op.setCondition(newcond);
-	}
+        // Modifies the schema before returning the root.
+        modifySchema(root);
+        return root;
     }
 
-    protected void transformRighttoLeft(Join op, Join right){
+    /**
+     * Applies join Associativity for the join numbered with joinNum.
+     * i.e., (A X B) X C is changed to A X (B X C)
+     *
+     * @param root    is the root of the query plan tree.
+     * @param joinNum is the randomly selected node number.
+     * @return the modified plan.
+     */
+    private Operator neighborAssociativity(Operator root, int joinNum) {
+        // Finds the node to be altered.
+        Join op = (Join) findNodeAt(root, joinNum);
+        // Join op = (Join) joinOpList.elementAt(joinNum);
+        Operator left = op.getLeft();
+        Operator right = op.getRight();
 
-	System.out.println("------------------Right to Left Neighbor------------------");
-	Operator left = op.getLeft();
-	Operator rightleft = right.getLeft();
-	Operator rightright = right.getRight();
-	Attribute rightAttr = (Attribute) op.getCondition().getRhs();
-	Join temp;
-	/** CASE 3 :  A X a1b1 (B X b4c4  C)     =  (A X a1b1 B ) X b4c4 C
-	 ** a1b1,  b4c4 are the join conditions at that join operator
-	 **/
-	if(rightleft.getSchema().contains(rightAttr)){
-	    System.out.println("----------------------CASE 3-----------------------");
-	    temp = new Join(left,rightleft,op.getCondition(),OpType.JOIN);
-	    temp.setJoinType(op.getJoinType());
-	    temp.setNodeIndex(op.getNodeIndex());
-	    op.setLeft(temp);
-	    op.setRight(rightright);
-	    op.setJoinType(right.getJoinType());
-	    op.setNodeIndex(right.getNodeIndex());
-	    op.setCondition(right.getCondition());
-	}else{
-	    /** CASE 4 :  A X a1c1 (B X b4c4  C)     =  (A X a1c1 C ) X c4b4 B
-	     ** a1b1,  b4c4 are the join conditions at that join operator
-	     **/
-	    System.out.println("-----------------------------CASE 4-----------------");
-	    temp = new Join(left,rightright,op.getCondition(),OpType.JOIN);
-	    temp.setJoinType(op.getJoinType());
-	    temp.setNodeIndex(op.getNodeIndex());
+        if (left.getOpType() == OpType.JOIN && right.getOpType() != OpType.JOIN) {
+            transformLeftToRight(op, (Join) left);
+        } else if (left.getOpType() != OpType.JOIN && right.getOpType() == OpType.JOIN) {
+            transformRightToLeft(op, (Join) right);
+        } else if (left.getOpType() == OpType.JOIN && right.getOpType() == OpType.JOIN) {
+            if (RandNumb.flipCoin())
+                transformLeftToRight(op, (Join) left);
+            else
+                transformRightToLeft(op, (Join) right);
+        } else {
+            // The join is just A X B, therefore Association rule is not applicable.
+        }
 
-	    op.setLeft(temp);
-	    op.setRight(rightleft);
-	    op.setJoinType(right.getJoinType());
-	    op.setNodeIndex(right.getNodeIndex());
-	    Condition newcond = right.getCondition();
-	    newcond.flip();
-	    op.setCondition(newcond);
-
-	}
-
-
+        // Modifies the schema before returning the root.
+        modifySchema(root);
+        return root;
     }
 
+    /**
+     * This is the given plan (A X B) X C.
+     *
+     * @param op   is the node to be altered.
+     * @param left is the left child of the node op.
+     */
+    private void transformLeftToRight(Join op, Join left) {
+        System.out.println("------------------Left to Right neighbor--------------");
 
+        Operator right = op.getRight();
+        Operator leftLeft = left.getLeft();
+        Operator leftRight = left.getRight();
+        Attribute leftAttr = op.getCondition().getLhs();
+        Join temp;
 
-    /** This method traverses through the query plan and
-     ** returns the node mentioned by joinNum
-     **/
+        // CASE 1 : (A X a1b1 B) X b4c4 C = A X a1b1 (B X b4c4 C)
+        // a1b1, b4c4 are the join conditions for that join operator.
+        if (leftRight.getSchema().contains(leftAttr)) {
+            System.out.println("----------------CASE 1-----------------");
 
-    protected Operator findNodeAt(Operator node,int joinNum){
-	if(node.getOpType() == OpType.JOIN){
-	    if(((Join)node).getNodeIndex()==joinNum){
-		return node;
-	    }else{
-		Operator temp;
-		temp= findNodeAt(((Join)node).getLeft(),joinNum);
-		if(temp==null)
-		    temp = findNodeAt(((Join)node).getRight(),joinNum);
-		return temp;
-	    }
-	}else if(node.getOpType() == OpType.SCAN){
-	    return null;
-	}else if(node.getOpType()==OpType.SELECT){
-	    //if sort/project/select operator
-	    return findNodeAt(((Select)node).getBase(),joinNum);
-	}else if(node.getOpType()==OpType.PROJECT){
-	    return findNodeAt(((Project)node).getBase(),joinNum);
-	}else{
-	    return null;
-	}
+            temp = new Join(leftRight, right, op.getCondition(), OpType.JOIN);
+            temp.setJoinType(op.getJoinType());
+            temp.setNodeIndex(op.getNodeIndex());
+            op.setLeft(leftLeft);
+            op.setJoinType(left.getJoinType());
+            op.setNodeIndex(left.getNodeIndex());
+            op.setRight(temp);
+            op.setCondition(left.getCondition());
+        } else {
+            System.out.println("--------------------CASE 2---------------");
+
+            // CASE 2: (A X a1b1 B) X a4c4 C = B X b1a1 (A X a4c4 C)
+            // a1b1, a4c4 are the join conditions for that join operator.
+            temp = new Join(leftLeft, right, op.getCondition(), OpType.JOIN);
+            temp.setJoinType(op.getJoinType());
+            temp.setNodeIndex(op.getNodeIndex());
+            op.setLeft(leftRight);
+            op.setRight(temp);
+            op.setJoinType(left.getJoinType());
+            op.setNodeIndex(left.getNodeIndex());
+            Condition newCondition = left.getCondition();
+            newCondition.flip();
+            op.setCondition(newCondition);
+        }
     }
 
+    /**
+     * @param op    is the node to be altered.
+     * @param right is the right child of the node op.
+     */
+    private void transformRightToLeft(Join op, Join right) {
+        System.out.println("------------------Right to Left Neighbor------------------");
 
+        Operator left = op.getLeft();
+        Operator rightLeft = right.getLeft();
+        Operator rightRight = right.getRight();
+        Attribute rightAttr = (Attribute) op.getCondition().getRhs();
+        Join temp;
 
+        // CASE 3 : A X a1b1 (B X b4c4 C) = (A X a1b1 B) X b4c4 C
+        // a1b1, b4c4 are the join conditions at that join operator.
+        if (rightLeft.getSchema().contains(rightAttr)) {
+            System.out.println("----------------------CASE 3-----------------------");
 
-	/** modifies the schema of operators which are modified due to selecing an alternative neighbor plan **/
-    private void modifySchema(Operator node){
+            temp = new Join(left, rightLeft, op.getCondition(), OpType.JOIN);
+            temp.setJoinType(op.getJoinType());
+            temp.setNodeIndex(op.getNodeIndex());
+            op.setLeft(temp);
+            op.setRight(rightRight);
+            op.setJoinType(right.getJoinType());
+            op.setNodeIndex(right.getNodeIndex());
+            op.setCondition(right.getCondition());
+        } else {
+            // CASE 4 : A X a1c1 (B X b4c4 C) = (A X a1c1 C) X c4b4 B
+            // a1b1,  b4c4 are the join conditions at that join operator.
+            System.out.println("-----------------------------CASE 4-----------------");
 
+            temp = new Join(left, rightRight, op.getCondition(), OpType.JOIN);
+            temp.setJoinType(op.getJoinType());
+            temp.setNodeIndex(op.getNodeIndex());
 
-	if(node.getOpType()==OpType.JOIN){
-	    Operator left = ((Join)node).getLeft();
-	    Operator right =((Join)node).getRight();
-	    modifySchema(left);
-	    modifySchema(right);
-	    node.setSchema(left.getSchema().joinWith(right.getSchema()));
-	}else if(node.getOpType()==OpType.SELECT){
-	    Operator base= ((Select)node).getBase();
-	    modifySchema(base);
-	    node.setSchema(base.getSchema());
-	}else if(node.getOpType()==OpType.PROJECT){
-	    Operator base = ((Project)node).getBase();
-	    modifySchema(base);
-	    Vector attrlist = ((Project)node).getProjectAttr();
-	    node.setSchema(base.getSchema().subSchema(attrlist));
-	}
+            op.setLeft(temp);
+            op.setRight(rightLeft);
+            op.setJoinType(right.getJoinType());
+            op.setNodeIndex(right.getNodeIndex());
+            Condition newCondition = right.getCondition();
+            newCondition.flip();
+            op.setCondition(newCondition);
+        }
     }
 
+    /**
+     * Traverses through the query plan and returns the node specified by joinNum.
+     *
+     * @param node    is the query plan.
+     * @param joinNum is the randomly selected node number.
+     * @return the node specified by joinNum.
+     */
+    private Operator findNodeAt(Operator node, int joinNum) {
+        if (node.getOpType() == OpType.JOIN) {
+            if (((Join) node).getNodeIndex() == joinNum) {
+                return node;
+            } else {
+                Operator temp;
+                temp = findNodeAt(((Join) node).getLeft(), joinNum);
+                if (temp == null)
+                    temp = findNodeAt(((Join) node).getRight(), joinNum);
+                return temp;
+            }
+        } else if (node.getOpType() == OpType.SCAN) {
+            return null;
+        } else if (node.getOpType() == OpType.SELECT) {
+            // If sort / project / select operator.
+            return findNodeAt(((Select) node).getBase(), joinNum);
+        } else if (node.getOpType() == OpType.PROJECT) {
+            return findNodeAt(((Project) node).getBase(), joinNum);
+        } else {
+            return null;
+        }
+    }
 
+    /**
+     * Modifies the schema of operators which are modified due to selecting
+     * an alternative neighbor plan.
+     *
+     * @param node is the query plan.
+     */
+    private void modifySchema(Operator node) {
+        if (node.getOpType() == OpType.JOIN) {
+            Operator left = ((Join) node).getLeft();
+            Operator right = ((Join) node).getRight();
 
-	/** AFter finding a choice of method for each operator
-		prepare an execution plan by replacing the methods with
-		corresponding join operator implementation
-			**/
+            modifySchema(left);
+            modifySchema(right);
+            node.setSchema(left.getSchema().joinWith(right.getSchema()));
+        } else if (node.getOpType() == OpType.SELECT) {
+            Operator base = ((Select) node).getBase();
 
-    public static Operator makeExecPlan(Operator node){
+            modifySchema(base);
+            node.setSchema(base.getSchema());
+        } else if (node.getOpType() == OpType.PROJECT) {
+            Operator base = ((Project) node).getBase();
+            Vector attrList = ((Project) node).getProjectAttr();
 
-	if(node.getOpType()==OpType.JOIN){
-	    Operator left = makeExecPlan(((Join)node).getLeft());
-	    Operator right = makeExecPlan(((Join)node).getRight());
-	    int joinType = ((Join)node).getJoinType();
-	    int numbuff = BufferManager.getBuffersPerJoin();
-	    switch(joinType){
-	    case JoinType.NESTED_JOIN:
+            modifySchema(base);
+            node.setSchema(base.getSchema().subSchema(attrList));
+        }
+    }
 
-		NestedJoin nj = new NestedJoin((Join) node);
-		nj.setLeft(left);
-		nj.setRight(right);
-		nj.setNumOfBuffer(numbuff);
-		return nj;
+    /**
+     * Prepares an execution plan by replacing the methods with corresponding
+     * join operator implementation, after finding a choice of method for
+     * each operator.
+     *
+     * @param node is the query plan.
+     * @return the execution plan.
+     */
+    public static Operator makeExecPlan(Operator node) {
+        if (node.getOpType() == OpType.JOIN) {
+            Operator left = makeExecPlan(((Join) node).getLeft());
+            Operator right = makeExecPlan(((Join) node).getRight());
+            int joinType = ((Join) node).getJoinType();
+            int numOfBuff = BufferManager.getBuffersPerJoin();
 
-	    /** Temporarity used simple nested join,
-	    	replace with hasjoin, if implemented **/
+            switch (joinType) {
+                case JoinType.NESTED_JOIN:
+                    NestedJoin nj = new NestedJoin((Join) node);
+                    nj.setLeft(left);
+                    nj.setRight(right);
+                    nj.setNumOfBuffer(numOfBuff);
+                    return nj;
 
-	    case JoinType.BLOCK_NESTED:
+                // TODO: replace simple nested join with hash join
+                case JoinType.BLOCK_NESTED:
+                    NestedJoin bj = new NestedJoin((Join) node);
+                    // Add other code here.
 
-		NestedJoin bj = new NestedJoin((Join) node);
-                /* + other code */
-		return bj;
+                    return bj;
 
-	    case JoinType.SORT_MERGE:
+                case JoinType.SORT_MERGE:
+                    NestedJoin sm = new NestedJoin((Join) node);
+                    // Add other code here.
 
-		NestedJoin sm = new NestedJoin((Join) node);
-                /* + other code */
-		return sm;
+                    return sm;
 
-	    case JoinType.HASH_JOIN:
+                case JoinType.HASH_JOIN:
+                    NestedJoin hj = new NestedJoin((Join) node);
+                    // Add other code here.
 
-		NestedJoin hj = new NestedJoin((Join) node);
-                /* + other code */
-		return hj;
-	    default:
-		return node;
-	    }
-	}else if(node.getOpType() == OpType.SELECT){
-	    Operator base = makeExecPlan(((Select)node).getBase());
-	    ((Select)node).setBase(base);
-	    return node;
-	}else if(node.getOpType() == OpType.PROJECT){
-	    Operator base = makeExecPlan(((Project)node).getBase());
-	    ((Project)node).setBase(base);
-	    return node;
-	}else{
-	    return node;
-	}
+                    return hj;
+
+                default:
+                    return node;
+            }
+        } else if (node.getOpType() == OpType.SELECT) {
+            Operator base = makeExecPlan(((Select) node).getBase());
+            ((Select) node).setBase(base);
+            return node;
+        } else if (node.getOpType() == OpType.PROJECT) {
+            Operator base = makeExecPlan(((Project) node).getBase());
+            ((Project) node).setBase(base);
+            return node;
+        } else {
+            return node;
+        }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
