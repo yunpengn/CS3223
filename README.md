@@ -48,8 +48,12 @@ This repository presents our approach to this project. We are a team of 3 underg
     - Use logging if necessary (for this project, we would use `System.out.println` & `System.err.println` for simplicity).
 - To generate the scanner class with JLex library, follow the steps below:
     - Go to the `lib` folder by `cd lib/`;
-    - Run `java JLex.Main ../src/qp/parser/scanner.lex`
+    - Run `java JLex.Main ../src/qp/parser/scanner.lex`;
     - The command in last step will generate a new file named `scanner.lex.java`, use this file to replace the original `Scanner.java` file. Make sure you remember to change the class name inside the file as well (as the original generated file name is not desirable).
+- To generate the parser class with the JavaCup library, follow the steps below:
+    - Go to the `lib/CUP` folder by `cd lib/CUP/`;
+    - Run `java java_cup.Main ../../src/qp/parser/parser.cup`;
+    - Replace the original `parser.java` and `sym.java` with the generated files.
 
 ## References
 
