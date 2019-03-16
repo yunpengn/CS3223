@@ -16,7 +16,7 @@ import qp.operators.Scan;
 import qp.operators.Select;
 import qp.utils.Attribute;
 import qp.utils.Condition;
-import qp.utils.RandNumb;
+import qp.utils.RandomNum;
 import qp.utils.SQLQuery;
 import qp.utils.Schema;
 
@@ -155,14 +155,14 @@ public class RandomInitialPlan {
      */
     private void createJoinOp() {
         BitSet bitCList = new BitSet(numOfJoin);
-        int joinNum = RandNumb.randInt(0, numOfJoin - 1);
+        int joinNum = RandomNum.randInt(0, numOfJoin - 1);
         Join join = null;
 
         // Repeats until all the join conditions are considered.
         while (bitCList.cardinality() != numOfJoin) {
             // chooses another join condition if this condition is already considered.
             while (bitCList.get(joinNum)) {
-                joinNum = RandNumb.randInt(0, numOfJoin - 1);
+                joinNum = RandomNum.randInt(0, numOfJoin - 1);
             }
             Condition condition = (Condition) joinList.elementAt(joinNum);
             String leftTable = condition.getLeft().getTabName();
@@ -176,7 +176,7 @@ public class RandomInitialPlan {
             join.setSchema(newSchema);
             // Randomly selects a join type.
             int numOfJoinTypes = JoinType.numJoinTypes();
-            int joinType = RandNumb.randInt(0, numOfJoinTypes - 1);
+            int joinType = RandomNum.randInt(0, numOfJoinTypes - 1);
             join.setJoinType(joinType);
 
             modifyHashtable(leftOp, join);

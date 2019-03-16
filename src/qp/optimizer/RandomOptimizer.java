@@ -12,7 +12,7 @@ import qp.operators.Project;
 import qp.operators.Select;
 import qp.utils.Attribute;
 import qp.utils.Condition;
-import qp.utils.RandNumb;
+import qp.utils.RandomNum;
 import qp.utils.SQLQuery;
 
 /**
@@ -51,10 +51,10 @@ public class RandomOptimizer {
      */
     private Operator getNeighbor(Operator root) {
         // Randomly selects a node to be altered to get the neighbour.
-        int nodeNum = RandNumb.randInt(0, numOfJoin - 1);
+        int nodeNum = RandomNum.randInt(0, numOfJoin - 1);
 
         // Randomly selects type of alteration: Change Method / Associative / Commutative.
-        int changeType = RandNumb.randInt(0, NUM_OF_CHOICES - 1);
+        int changeType = RandomNum.randInt(0, NUM_OF_CHOICES - 1);
         Operator neighbor = null;
 
         switch (changeType) {
@@ -188,9 +188,9 @@ public class RandomOptimizer {
             // Finds the node that is to be altered.
             Join node = (Join) findNodeAt(root, joinNum);
             int prevJoinMethod = node.getJoinType();
-            int joinMethod = RandNumb.randInt(0, numJoinMethods - 1);
+            int joinMethod = RandomNum.randInt(0, numJoinMethods - 1);
             while (joinMethod == prevJoinMethod) {
-                joinMethod = RandNumb.randInt(0, numJoinMethods - 1);
+                joinMethod = RandomNum.randInt(0, numJoinMethods - 1);
             }
             node.setJoinType(joinMethod);
         }
@@ -245,7 +245,7 @@ public class RandomOptimizer {
         } else if (left.getOpType() != OpType.JOIN && right.getOpType() == OpType.JOIN) {
             transformRightToLeft(op, (Join) right);
         } else if (left.getOpType() == OpType.JOIN && right.getOpType() == OpType.JOIN) {
-            if (RandNumb.flipCoin())
+            if (RandomNum.flipCoin())
                 transformLeftToRight(op, (Join) left);
             else
                 transformRightToLeft(op, (Join) right);
