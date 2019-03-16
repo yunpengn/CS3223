@@ -30,8 +30,8 @@ This repository presents our approach to this project. We are a team of 3 underg
 	- Go to `Project Structure` > `Libraries`, add `Java` with `lib/CUP` and `lib/JLEX`.
 	- Go to `Project Structure` > `Modules`:
 		- Mark `src` folder as `Sources`;
-		- Mark `classes` folder and `out` folder (if exists) as `Excluded`;
-		- Mark `testcases` folder as `Resources`.
+		- Mark `test` folder as `Tests`;
+		- Mark `classes` folder and `out` folder (if exists) as `Excluded`.
 - Run `build.bat` (Windows) or `build.sh` (macOS or Linux) to build the project.
 
 ## Development Workflow
