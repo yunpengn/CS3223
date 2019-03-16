@@ -1,48 +1,43 @@
+package qp.parser;
 
-import java_cup.runtime.*;
-import java.util.*;
+import java.util.Vector;
 
-//import SMA5503.IR.*;
+import java_cup.runtime.Symbol;
+import qp.utils.Attribute;
+import qp.utils.Condition;
+import qp.utils.SQLQuery;
 
-/* user code portion  */
-parser code {: 
-	
-
+// user code portion.
+parser code {:
 	public SQLQuery query;
-	
-	public SQLQuery getSQLQuery(){
-	return query;
+
+	public SQLQuery getSQLQuery() {
+	    return query;
 	}
 
+	public void report_fatal_error(String message, Object info) throws java.lang.Exception {
+	    // Stops parsing (not really necessary since we throw an exception, but).
+	 	done_parsing();
 
-	 public void report_fatal_error(String   message, Object   info)
-	 	    throws java.lang.Exception
-		{
-	 	      /* stop parsing (not really necessary since we throw an exception, but) */
-	 	      done_parsing();
-	 	
-	 	      /* use the normal error message reporting to put out the message */
-	 	      report_error("Fatal error occurred, stop parsing.", info);
-	 	
-	 	}
-	 
-	 	public void syntax_error(Symbol cur_token){}
-	
+	 	// Uses the normal error message reporting to put out the message.
+	 	report_error("Fatal error occurred, stop parsing.", info);
+	}
+
+	public void syntax_error(Symbol cur_token) {
+	}
 :}
 
 action code {:
-
 :}
 
+// Terminals (tokens returned by the scanner).
+terminal TokenValue ID;
+terminal COMMA,SEMI,DOT,STAR;
+terminal LESSTHAN, GREATERTHAN,LTOE,GTOE,EQUAL,NOTEQUAL,AND,OR;
+terminal SELECT,FROM,WHERE,GROUPBY,DISTINCT;
+terminal TokenValue STRINGLIT;
 
-/* Terminals (tokens returned by the scanner). */
-terminal 	TokenValue ID;
-terminal        COMMA,SEMI,DOT,STAR;
-terminal      	LESSTHAN, GREATERTHAN,LTOE,GTOE,EQUAL,NOTEQUAL,AND,OR;     
-terminal	SELECT,FROM,WHERE,GROUPBY,DISTINCT;
-terminal 	TokenValue STRINGLIT;
-
-/* Non terminals */	
+// Non terminals.
 nonterminal SQLQuery sqlquery;
 nonterminal Vector attlist;
 nonterminal Attribute attribute;
@@ -51,14 +46,11 @@ nonterminal Vector conditionlist;
 nonterminal Condition condition;
 nonterminal Condition op;
 
-
-/* The grammar */
-
+// The grammar.
 sqlquery ::= sqlquery:s  GROUPBY attlist:a
 		{:
 		s.setGroupByList(a);
 		parser.query=s;
-	
 		:}
 	     | SELECT attlist:a FROM tablelist:t WHERE conditionlist:c
 		{:
@@ -73,8 +65,8 @@ sqlquery ::= sqlquery:s  GROUPBY attlist:a
 	          SQLQuery sq = new SQLQuery(a,t,c);
 		parser.query=sq;
 		RESULT=sq;
-		:}	
-             | SELECT attlist:a FROM tablelist:t 
+		:}
+             | SELECT attlist:a FROM tablelist:t
                 {:
                  Vector v1= new Vector();
                 SQLQuery sq = new SQLQuery(a,t);
@@ -129,20 +121,18 @@ conditionlist ::= conditionlist:clist COMMA condition:c
 		:}
 		;
 
-
 condition::= attribute:at op:o STRINGLIT:s
 	     {:
 		Condition c= new Condition(at,o.getExprType(),s.text());
 		c.setOpType(Condition.SELECT);
 		RESULT=c;
-
 	     :}
 	     |attribute:a1 op:o attribute:a2
 	     {:
 		Condition c= new Condition(a1,o.getExprType(),a2);
 		c.setOpType(Condition.JOIN);
 		RESULT=c;
-	      :}	
+	      :}
 		|attribute:at error:p
 		{:
 		System.out.println("syntax error: incorrect condition");
@@ -152,9 +142,8 @@ condition::= attribute:at op:o STRINGLIT:s
 		{:
 		System.out.println("syntax error: incorrect condition:"+s.text());
 		System.exit(0);
-		:}	
+		:}
 		;
-
 
 attribute::= ID:i1 DOT ID:i2
 		{:
@@ -167,7 +156,7 @@ attribute::= ID:i1 DOT ID:i2
 		:}
 		;
 
-op::= 	
+op::=
 	LESSTHAN
 	{:
 	RESULT=new Condition(Condition.LESSTHAN);
@@ -185,29 +174,11 @@ op::=
 	RESULT=new Condition(Condition.GTOE);
 	:}
 	|NOTEQUAL
-	{:	
+	{:
 	  RESULT = new Condition(Condition.NOTEQUAL);
 	:}
 	|EQUAL
 	{:
 	 RESULT=new Condition(Condition.EQUAL);
 	:}
-	;	
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	;

@@ -2,7 +2,7 @@ PACKAGE = qp.parser
 
 SOURCE = \
 	parser.java \
-	Scaner.java \
+	Scanner.java \
 	sym.java \
 	TokenValue.java \
 	
