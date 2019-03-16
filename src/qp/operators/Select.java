@@ -159,20 +159,20 @@ public class Select extends Operator {
      * @return true if the condition is satisfied.
      */
     private boolean checkCondition(Tuple tuple) {
-        Attribute attr = con.getLhs();
+        Attribute attr = con.getLeft();
         int index = schema.indexOf(attr);
         int dataType = schema.typeOf(attr);
         Object srcValue = tuple.dataAt(index);
-        String checkValue = (String) con.getRhs();
-        int expressionType = con.getExprType();
+        String checkValue = (String) con.getRight();
+        int expressionType = con.getOperator();
 
         if (dataType == Attribute.INT) {
             int srcVal = (Integer) srcValue;
             int checkVal = Integer.parseInt(checkValue);
 
-            if (expressionType == Condition.LESSTHAN) {
+            if (expressionType == Condition.LESS_THAN) {
                 return srcVal < checkVal;
-            } else if (expressionType == Condition.GREATERTHAN) {
+            } else if (expressionType == Condition.GREATER_THAN) {
                 return srcVal > checkVal;
             } else if (expressionType == Condition.LTOE) {
                 return srcVal <= checkVal;
@@ -189,9 +189,9 @@ public class Select extends Operator {
             String srcVal = (String) srcValue;
             int flag = srcVal.compareTo(checkValue);
 
-            if (expressionType == Condition.LESSTHAN) {
+            if (expressionType == Condition.LESS_THAN) {
                 return flag < 0;
-            } else if (expressionType == Condition.GREATERTHAN) {
+            } else if (expressionType == Condition.GREATER_THAN) {
                 return flag > 0;
             } else if (expressionType == Condition.LTOE) {
                 return flag <= 0;
@@ -208,9 +208,9 @@ public class Select extends Operator {
             float srcVal = (Float) srcValue;
             float checkVal = Float.parseFloat(checkValue);
 
-            if (expressionType == Condition.LESSTHAN) {
+            if (expressionType == Condition.LESS_THAN) {
                 return srcVal < checkVal;
-            } else if (expressionType == Condition.GREATERTHAN) {
+            } else if (expressionType == Condition.GREATER_THAN) {
                 return srcVal > checkVal;
             } else if (expressionType == Condition.LTOE) {
                 return srcVal <= checkVal;

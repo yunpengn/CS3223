@@ -224,22 +224,22 @@ class CUP$parser$actions {
           return CUP$parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
-          case 19: // op ::= GREATERTHAN 
+          case 19: // op ::= GREATER_THAN
             {
               Condition RESULT = null;
 		
-	RESULT=new Condition(Condition.GREATERTHAN);
+	RESULT=new Condition(Condition.GREATER_THAN);
 	
               CUP$parser$result = new java_cup.runtime.Symbol(7/*op*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
             }
           return CUP$parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
-          case 18: // op ::= LESSTHAN 
+          case 18: // op ::= LESS_THAN
             {
               Condition RESULT = null;
 		
-	RESULT=new Condition(Condition.LESSTHAN);
+	RESULT=new Condition(Condition.LESS_THAN);
 	
               CUP$parser$result = new java_cup.runtime.Symbol(7/*op*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
             }
@@ -330,8 +330,8 @@ class CUP$parser$actions {
 		int a2right = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right;
 		Attribute a2 = (Attribute)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-0)).value;
 		
-		Condition c= new Condition(a1,o.getExprType(),a2);
-		c.setOpType(Condition.JOIN);
+		Condition c= new Condition(a1,o.getOperator(),a2);
+		c.setCondType(Condition.JOIN);
 		RESULT=c;
 	      
               CUP$parser$result = new java_cup.runtime.Symbol(6/*condition*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);
@@ -352,8 +352,8 @@ class CUP$parser$actions {
 		int sright = ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right;
 		TokenValue s = (TokenValue)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-0)).value;
 		
-		Condition c= new Condition(at,o.getExprType(),s.text());
-		c.setOpType(Condition.SELECT);
+		Condition c= new Condition(at,o.getOperator(),s.text());
+		c.setCondType(Condition.SELECT);
 		RESULT=c;
 	     
               CUP$parser$result = new java_cup.runtime.Symbol(6/*condition*/, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)).left, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-0)).right, RESULT);

@@ -78,8 +78,8 @@ public class NestedJoin extends Join {
         batchSize = Batch.getPageSize() / tupleSize;
 
         // Gets the join attribute from left & right table.
-        Attribute leftAttr = con.getLhs();
-        Attribute rightAttr = (Attribute) con.getRhs();
+        Attribute leftAttr = con.getLeft();
+        Attribute rightAttr = (Attribute) con.getRight();
         leftIndex = left.getSchema().indexOf(leftAttr);
         rightIndex = right.getSchema().indexOf(rightAttr);
         Batch rightPage;
@@ -99,7 +99,7 @@ public class NestedJoin extends Join {
              * If the right operator is not a base table, then materializes the intermediate result
              * from right into a file.
              */
-            // if(right.getOpType() != OpType.SCAN){
+            // if(right.getCondType() != OpType.SCAN){
             fileNum++;
             rightFileName = "NJtemp-" + fileNum;
             try {

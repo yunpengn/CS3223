@@ -132,8 +132,8 @@ public class RandomInitialPlan {
 
         for (int j = 0; j < selectionList.size(); j++) {
             Condition condition = (Condition) selectionList.elementAt(j);
-            if (condition.getOpType() == Condition.SELECT) {
-                String tableName = condition.getLhs().getTabName();
+            if (condition.getCondType() == Condition.SELECT) {
+                String tableName = condition.getLeft().getTabName();
 
                 Operator tempOp = (Operator) nameToOpr.get(tableName);
                 opr = new Select(tempOp, condition, OpType.SELECT);
@@ -165,8 +165,8 @@ public class RandomInitialPlan {
                 joinNum = RandNumb.randInt(0, numOfJoin - 1);
             }
             Condition condition = (Condition) joinList.elementAt(joinNum);
-            String leftTable = condition.getLhs().getTabName();
-            String rightTable = ((Attribute) condition.getRhs()).getTabName();
+            String leftTable = condition.getLeft().getTabName();
+            String rightTable = ((Attribute) condition.getRight()).getTabName();
 
             Operator leftOp = (Operator) nameToOpr.get(leftTable);
             Operator rightOp = (Operator) nameToOpr.get(rightTable);

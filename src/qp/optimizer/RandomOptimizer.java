@@ -270,7 +270,7 @@ public class RandomOptimizer {
         Operator right = op.getRight();
         Operator leftLeft = left.getLeft();
         Operator leftRight = left.getRight();
-        Attribute leftAttr = op.getCondition().getLhs();
+        Attribute leftAttr = op.getCondition().getLeft();
         Join temp;
 
         // CASE 1 : (A X a1b1 B) X b4c4 C = A X a1b1 (B X b4c4 C)
@@ -314,7 +314,7 @@ public class RandomOptimizer {
         Operator left = op.getLeft();
         Operator rightLeft = right.getLeft();
         Operator rightRight = right.getRight();
-        Attribute rightAttr = (Attribute) op.getCondition().getRhs();
+        Attribute rightAttr = (Attribute) op.getCondition().getRight();
         Join temp;
 
         // CASE 3 : A X a1b1 (B X b4c4 C) = (A X a1b1 B) X b4c4 C
