@@ -1,32 +1,53 @@
 package qp.parser;
 
-public class TokenValue{
-  public String text;
+/**
+ * Defines the token used for parser and scanner.
+ */
+public class TokenValue {
+    private String text;
 
-  public TokenValue() {
-  }
+    /**
+     * Default Constructor.
+     */
+    public TokenValue() {
+    }
 
+    /**
+     * Constructor of TokenValue.
+     */
     public TokenValue(String text) {
-	this.text = text;
+        this.text = text;
     }
 
-    public String text(){
-	return text;
+    /**
+     * Getter of text.
+     */
+    public String text() {
+        return text;
     }
 
-  public Boolean toBoolean() {
-    return Boolean.valueOf(text);
-  }
-
-  public Character toCharacter() {
-    return new Character(text.charAt(0));
-  }
-
-  public Integer toInteger() {
-    if (text.startsWith("0x")) {
-    	return new Integer((int)Long.parseLong(text.substring(2),16));
-    } else {
-    	return Integer.valueOf(text,10);
+    /**
+     * @return the boolean value of text.
+     */
+    public Boolean toBoolean() {
+        return Boolean.valueOf(text);
     }
-  }
+
+    /**
+     * @return the first character of text.
+     */
+    public Character toCharacter() {
+        return text.charAt(0);
+    }
+
+    /**
+     * @return the integer value of text.
+     */
+    public Integer toInteger() {
+        if (text.startsWith("0x")) {
+            return (int) Long.parseLong(text.substring(2), 16);
+        } else {
+            return Integer.valueOf(text, 10);
+        }
+    }
 }
