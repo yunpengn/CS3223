@@ -1,4 +1,3 @@
-
 package qp.utils;
 
 import java.io.Serializable;
