@@ -1,5 +1,11 @@
-import java_cup.runtime.*;
-import java.util.*;
+package qp.parser;
+
+import java.util.Vector;
+
+import java_cup.runtime.Symbol;
+import qp.utils.Attribute;
+import qp.utils.Condition;
+import qp.utils.SQLQuery;
 
 // user code portion.
 parser code {:
