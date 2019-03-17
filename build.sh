@@ -33,6 +33,10 @@ cd classes/
 for file in *.det; do
     tableName=${file%.det}
     echo "Generates fixtures for table named ${tableName}:"
+    if [[ -e ${tableName}.md && -e ${tableName}.stat && -e ${tableName}.tbl && -e ${tableName}.txt ]]; then
+        echo "Fixtures for table ${tableName} already exists!"
+        continue
+    fi
     java RandomDB ${tableName} 100
     java ConvertTxtToTbl ${tableName}
     echo ""
