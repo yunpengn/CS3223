@@ -150,13 +150,13 @@ public class PlanCost {
         int joinCost;
 
         switch (joinType) {
-            case JoinType.NESTED_JOIN:
+            case JoinType.PAGE_NESTED_JOIN:
                 joinCost = leftPages * rightPages;
                 break;
-            case JoinType.BLOCK_NESTED:
+            case JoinType.BLOCK_NESTED_JOIN:
                 joinCost = 0;
                 break;
-            case JoinType.SORT_MERGE:
+            case JoinType.SORT_MERGE_JOIN:
                 joinCost = 0;
                 break;
             case JoinType.HASH_JOIN:

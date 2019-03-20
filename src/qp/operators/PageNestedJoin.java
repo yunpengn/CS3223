@@ -15,7 +15,7 @@ import qp.utils.Tuple;
 /**
  * Implements the page-based nested loop join algorithm.
  */
-public class NestedJoin extends Join {
+public class PageNestedJoin extends Join {
     // The number of tuples per batch.
     private int batchSize;
 
@@ -56,7 +56,7 @@ public class NestedJoin extends Join {
      *
      * @param jn is the base join operator.
      */
-    public NestedJoin(Join jn) {
+    public PageNestedJoin(Join jn) {
         super(jn.getLeft(), jn.getRight(), jn.getCondition(), jn.getOpType());
         schema = jn.getSchema();
         joinType = jn.getJoinType();
@@ -101,7 +101,7 @@ public class NestedJoin extends Join {
              */
             // if(right.getCondType() != OpType.SCAN){
             fileNum++;
-            rightFileName = "NJtemp-" + fileNum;
+            rightFileName = "PNJtemp-" + fileNum;
             try {
                 ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(rightFileName));
                 rightPage = right.next();
@@ -111,7 +111,7 @@ public class NestedJoin extends Join {
                 }
                 out.close();
             } catch (IOException io) {
-                System.out.println("NestedJoin: writing the temporal file error");
+                System.out.println("PageNestedJoin: writing the temporal file error");
                 return false;
             }
             // }
@@ -153,7 +153,7 @@ public class NestedJoin extends Join {
                     in = new ObjectInputStream(new FileInputStream(rightFileName));
                     eosRight = false;
                 } catch (IOException io) {
-                    System.err.println("NestedJoin:error in reading the file");
+                    System.err.println("PageNestedJoin:error in reading the file");
                     System.exit(1);
                 }
             }
@@ -203,14 +203,14 @@ public class NestedJoin extends Join {
                     try {
                         in.close();
                     } catch (IOException io) {
-                        System.out.println("NestedJoin: error in temporary file reading");
+                        System.out.println("PageNestedJoin: error in temporary file reading");
                     }
                     eosRight = true;
                 } catch (ClassNotFoundException c) {
-                    System.out.println("NestedJoin: some error in deserialization");
+                    System.out.println("PageNestedJoin: some error in deserialization");
                     System.exit(1);
                 } catch (IOException io) {
-                    System.out.println("NestedJoin: temporary file reading error");
+                    System.out.println("PageNestedJoin: temporary file reading error");
                     System.exit(1);
                 }
             }
