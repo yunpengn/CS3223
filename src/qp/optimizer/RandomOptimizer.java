@@ -5,6 +5,7 @@ import java.util.Vector;
 import qp.operators.Debug;
 import qp.operators.Join;
 import qp.operators.JoinType;
+import qp.operators.BlockNestedJoin;
 import qp.operators.PageNestedJoin;
 import qp.operators.OpType;
 import qp.operators.Operator;
@@ -424,18 +425,19 @@ public class RandomOptimizer {
 
             switch (joinType) {
                 case JoinType.PAGE_NESTED_JOIN:
-                    PageNestedJoin nj = new PageNestedJoin((Join) node);
-                    nj.setLeft(left);
-                    nj.setRight(right);
-                    nj.setNumOfBuffer(numOfBuff);
-                    return nj;
+                    PageNestedJoin pnj = new PageNestedJoin((Join) node);
+                    pnj.setLeft(left);
+                    pnj.setRight(right);
+                    pnj.setNumOfBuffer(numOfBuff);
+                    return pnj;
 
                 // TODO: replace simple nested join with hash join
                 case JoinType.BLOCK_NESTED_JOIN:
-                    PageNestedJoin bj = new PageNestedJoin((Join) node);
-                    // Add other code here.
-
-                    return bj;
+                    BlockNestedJoin bnj = new BlockNestedJoin((Join) node);
+                    bnj.setLeft(left);
+                    bnj.setRight(right);
+                    bnj.setNumOfBuffer(numOfBuff);
+                    return bnj;
 
                 case JoinType.SORT_MERGE_JOIN:
                     PageNestedJoin sm = new PageNestedJoin((Join) node);
