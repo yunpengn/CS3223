@@ -13,14 +13,14 @@ import qp.utils.Batch;
 import qp.utils.Tuple;
 
 /**
- * Implements the page-based nested loop join algorithm.
+ * Implements the block-based nested loop join algorithm.
  */
-public class NestedJoin extends Join {
+public class BlockNestedJoin extends Join {
     // The number of tuples per batch.
     private int batchSize;
 
     /**
-     * Defines some fields useful during the execution of the page-based nested
+     * Defines some fields useful during the execution of the block-based nested
      * loop algorithm.
      */
     // Index of the join attribute in left table
@@ -35,8 +35,8 @@ public class NestedJoin extends Join {
     // To get unique fileNum for this operation
     private static int fileNum = 0;
 
-    // The buffer for the left input stream.
-    private Batch leftBatch;
+    // The buffers for the left input stream.
+    private Batch[] leftBatches;
     // The buffer for the right input stream.
     private Batch rightBatch;
     // The output buffer.
@@ -52,11 +52,11 @@ public class NestedJoin extends Join {
     private boolean eosRight;
 
     /**
-     * Instantiates a new join operator using page-based nested loop algorithm.
+     * Instantiates a new join operator using block-based nested loop algorithm.
      *
      * @param jn is the base join operator.
      */
-    public NestedJoin(Join jn) {
+    public BlockNestedJoin(Join jn) {
         super(jn.getLeft(), jn.getRight(), jn.getCondition(), jn.getOpType());
         schema = jn.getSchema();
         joinType = jn.getJoinType();
@@ -101,7 +101,7 @@ public class NestedJoin extends Join {
              */
             // if(right.getCondType() != OpType.SCAN){
             fileNum++;
-            rightFileName = "NJtemp-" + fileNum;
+            rightFileName = "BNJtemp-" + fileNum;
             try {
                 ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(rightFileName));
                 rightPage = right.next();
@@ -111,7 +111,7 @@ public class NestedJoin extends Join {
                 }
                 out.close();
             } catch (IOException io) {
-                System.out.println("NestedJoin: writing the temporal file error");
+                System.out.println("BlockNestedJoin: writing the temporary file error");
                 return false;
             }
             // }
@@ -139,23 +139,38 @@ public class NestedJoin extends Join {
 
         outBatch = new Batch(batchSize);
         while (!outBatch.isFull()) {
-            // Checks whether we need to read a new page from the left table.
+            // Checks whether we need to read a new block of pages from the left table.
             if (leftCursor == 0 && eosRight) {
-                // Fetches a new page from left table.
-                leftBatch = left.next();
-                if (leftBatch == null) {
+                leftBatches = new Batch[numOfBuffer - 2];
+                leftBatches[0] = left.next();
+                // Checks if there is no more pages from the left table.
+                if (leftBatches[0] == null) {
                     eosLeft = true;
                     return outBatch;
                 }
+                for (int i = 1; i < leftBatches.length; i++) {
+                    leftBatches[i] = left.next();
+                    if (leftBatches[i] == null) {
+                        break;
+                    }
+                }
 
-                // Starts the scanning of right table whenever a new left page comes.
+                // Starts the scanning of right table whenever a new block of left pages comes.
                 try {
                     in = new ObjectInputStream(new FileInputStream(rightFileName));
                     eosRight = false;
                 } catch (IOException io) {
-                    System.err.println("NestedJoin:error in reading the file");
+                    System.err.println("BlockNestedJoin:error in reading the file");
                     System.exit(1);
                 }
+            }
+
+            int numOfLeftTuple = leftBatches[0].size();
+            for (int i = 1; i < leftBatches.length; i++) {
+                if (leftBatches[i] == null) {
+                    break;
+                }
+                numOfLeftTuple += leftBatches[i].size();
             }
 
             // Continuously probe the right table until we hit the end-of-stream.
@@ -165,9 +180,12 @@ public class NestedJoin extends Join {
                         rightBatch = (Batch) in.readObject();
                     }
 
-                    for (int i = leftCursor; i < leftBatch.size(); i++) {
+                    for (int i = leftCursor; i < numOfLeftTuple; i++) {
+                        int leftBatchIndex = i / leftBatches[0].size();
+                        int leftTupleIndex = i % leftBatches[0].size();
+                        Tuple leftTuple = leftBatches[leftBatchIndex].elementAt(leftTupleIndex);
+
                         for (int j = rightCursor; j < rightBatch.size(); j++) {
-                            Tuple leftTuple = leftBatch.elementAt(i);
                             Tuple rightTuple = rightBatch.elementAt(j);
 
                             // Adds the tuple if satisfying the join condition.
@@ -177,15 +195,12 @@ public class NestedJoin extends Join {
 
                                 // Checks whether the output buffer is full.
                                 if (outBatch.isFull()) {
-                                    if (i == leftBatch.size() - 1 && j == rightBatch.size() - 1) {
+                                    if (i == numOfLeftTuple - 1 && j == rightBatch.size() - 1) {
                                         leftCursor = 0;
                                         rightCursor = 0;
-                                    } else if (i != leftBatch.size() - 1 && j == rightBatch.size() - 1) {
+                                    } else if (i != numOfLeftTuple - 1 && j == rightBatch.size() - 1) {
                                         leftCursor = i + 1;
                                         rightCursor = 0;
-                                    } else if (i == leftBatch.size() - 1 && j != rightBatch.size() - 1) {
-                                        leftCursor = i;
-                                        rightCursor = j + 1;
                                     } else {
                                         leftCursor = i;
                                         rightCursor = j + 1;
@@ -203,14 +218,14 @@ public class NestedJoin extends Join {
                     try {
                         in.close();
                     } catch (IOException io) {
-                        System.out.println("NestedJoin: error in temporary file reading");
+                        System.out.println("BlockNestedJoin: error in temporary file reading");
                     }
                     eosRight = true;
                 } catch (ClassNotFoundException c) {
-                    System.out.println("NestedJoin: some error in deserialization");
+                    System.out.println("BlockNestedJoin: some error in deserialization");
                     System.exit(1);
                 } catch (IOException io) {
-                    System.out.println("NestedJoin: temporary file reading error");
+                    System.out.println("BlockNestedJoin: temporary file reading error");
                     System.exit(1);
                 }
             }

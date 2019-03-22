@@ -145,21 +145,25 @@ public class PlanCost {
         int joinType = node.getJoinType();
 
         // Gets the number of buffers allocated to this join.
-        int numbuff = BufferManager.getBuffersPerJoin();
+        int numOfBuffer = BufferManager.getBuffersPerJoin();
 
         int joinCost;
 
         switch (joinType) {
-            case JoinType.NESTED_JOIN:
+            case JoinType.PAGE_NESTED_JOIN:
                 joinCost = leftPages * rightPages;
                 break;
-            case JoinType.BLOCK_NESTED:
-                joinCost = 0;
+            case JoinType.BLOCK_NESTED_JOIN:
+                int leftBlocks = (int) Math.ceil(leftPages / (numOfBuffer - 2));
+                joinCost = leftBlocks * rightPages;
                 break;
-            case JoinType.SORT_MERGE:
+            case JoinType.SORT_MERGE_JOIN:
                 joinCost = 0;
                 break;
             case JoinType.HASH_JOIN:
+                joinCost = 0;
+                break;
+            case JoinType.INDEX_NESTED_JOIN:
                 joinCost = 0;
                 break;
             default:

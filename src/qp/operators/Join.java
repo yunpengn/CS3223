@@ -16,7 +16,7 @@ public class Join extends Operator {
     // The number of buffers available
     int numOfBuffer;
 
-    // The type of the join (such as NestedJoin, SortMerge or HashJoin).
+    // The type of the join (such as PageNestedJoin, SortMerge or HashJoin).
     int joinType;
     // The index of the current join node.
     private int nodeIndex;

@@ -93,17 +93,20 @@ public class Debug {
             case OpType.JOIN:
                 int expressionType = ((Join) node).getJoinType();
                 switch (expressionType) {
-                    case JoinType.NESTED_JOIN:
-                        System.out.print("NestedJoin(");
+                    case JoinType.PAGE_NESTED_JOIN:
+                        System.out.print("PageNestedJoin(");
                         break;
-                    case JoinType.BLOCK_NESTED:
-                        System.out.print("BlockNested(");
+                    case JoinType.BLOCK_NESTED_JOIN:
+                        System.out.print("BlockNestedJoin(");
                         break;
-                    case JoinType.SORT_MERGE:
-                        System.out.print("SortMerge(");
+                    case JoinType.SORT_MERGE_JOIN:
+                        System.out.print("SortMergeJoin(");
                         break;
                     case JoinType.HASH_JOIN:
                         System.out.print("HashJoin(");
+                        break;
+                    case JoinType.INDEX_NESTED_JOIN:
+                        System.out.print("IndexNestedJoin(");
                         break;
                 }
                 PPrint(((Join) node).getLeft());
