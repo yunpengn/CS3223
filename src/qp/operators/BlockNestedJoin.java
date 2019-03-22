@@ -111,7 +111,7 @@ public class BlockNestedJoin extends Join {
                 }
                 out.close();
             } catch (IOException io) {
-                System.out.println("BlockNestedJoin: writing the temporal file error");
+                System.out.println("BlockNestedJoin: writing the temporary file error");
                 return false;
             }
             // }
@@ -165,19 +165,19 @@ public class BlockNestedJoin extends Join {
                 }
             }
 
+            int numOfLeftTuple = leftBatches[0].size();
+            for (int i = 1; i < leftBatches.length; i++) {
+                if (leftBatches[i] == null) {
+                    break;
+                }
+                numOfLeftTuple += leftBatches[i].size();
+            }
+
             // Continuously probe the right table until we hit the end-of-stream.
             while (!eosRight) {
                 try {
                     if (leftCursor == 0 && rightCursor == 0) {
                         rightBatch = (Batch) in.readObject();
-                    }
-
-                    int numOfLeftTuple = leftBatches[0].size();
-                    for (int i = 1; i < leftBatches.length; i++) {
-                        if (leftBatches[i] == null) {
-                            break;
-                        }
-                        numOfLeftTuple += leftBatches[i].size();
                     }
 
                     for (int i = leftCursor; i < numOfLeftTuple; i++) {
@@ -201,9 +201,6 @@ public class BlockNestedJoin extends Join {
                                     } else if (i != numOfLeftTuple - 1 && j == rightBatch.size() - 1) {
                                         leftCursor = i + 1;
                                         rightCursor = 0;
-                                    } else if (i == numOfLeftTuple - 1 && j != rightBatch.size() - 1) {
-                                        leftCursor = i;
-                                        rightCursor = j + 1;
                                     } else {
                                         leftCursor = i;
                                         rightCursor = j + 1;

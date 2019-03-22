@@ -105,6 +105,9 @@ public class Debug {
                     case JoinType.HASH_JOIN:
                         System.out.print("HashJoin(");
                         break;
+                    case JoinType.INDEX_NESTED_JOIN:
+                        System.out.print("IndexNestedJoin(");
+                        break;
                 }
                 PPrint(((Join) node).getLeft());
                 System.out.print("  [");

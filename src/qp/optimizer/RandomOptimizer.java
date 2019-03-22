@@ -451,6 +451,12 @@ public class RandomOptimizer {
 
                     return hj;
 
+                case JoinType.INDEX_NESTED_JOIN:
+                    PageNestedJoin inj = new PageNestedJoin((Join) node);
+                    // Add other code here.
+
+                    return inj;
+
                 default:
                     return node;
             }

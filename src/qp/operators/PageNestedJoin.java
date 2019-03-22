@@ -111,7 +111,7 @@ public class PageNestedJoin extends Join {
                 }
                 out.close();
             } catch (IOException io) {
-                System.out.println("PageNestedJoin: writing the temporal file error");
+                System.out.println("PageNestedJoin: writing the temporary file error");
                 return false;
             }
             // }
@@ -183,9 +183,6 @@ public class PageNestedJoin extends Join {
                                     } else if (i != leftBatch.size() - 1 && j == rightBatch.size() - 1) {
                                         leftCursor = i + 1;
                                         rightCursor = 0;
-                                    } else if (i == leftBatch.size() - 1 && j != rightBatch.size() - 1) {
-                                        leftCursor = i;
-                                        rightCursor = j + 1;
                                     } else {
                                         leftCursor = i;
                                         rightCursor = j + 1;

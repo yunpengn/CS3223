@@ -163,6 +163,9 @@ public class PlanCost {
             case JoinType.HASH_JOIN:
                 joinCost = 0;
                 break;
+            case JoinType.INDEX_NESTED_JOIN:
+                joinCost = 0;
+                break;
             default:
                 joinCost = 0;
                 break;
