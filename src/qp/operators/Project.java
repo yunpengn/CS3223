@@ -13,7 +13,7 @@ import qp.utils.Tuple;
  */
 public class Project extends Operator {
     // The base operator
-    Operator base;
+    private Operator base;
     // The set of attributes
     private Vector attrSet;
     // The number of tuples per outBatch
@@ -67,39 +67,28 @@ public class Project extends Operator {
         return attrSet;
     }
 
-    /** Opens the connection to the base operator
-     ** Also figures out what are the columns to be
-     ** projected from the base operator
-     **/
-
+    /**
+     * Opens the connection to the base operator and figures out what are the columns to be
+     * projected from the base operator.
+     *
+     * @return true if open successful.
+     */
     public boolean open() {
-        /** setnumber of tuples per batch **/
-        int tuplesize = schema.getTupleSize();
-        batchSize = Batch.getPageSize() / tuplesize;
+        // Sets the number of tuples per batch.
+        int tupleSize = schema.getTupleSize();
+        batchSize = Batch.getPageSize() / tupleSize;
 
-
-        /** The followingl loop findouts the index of the columns that
-         ** are required from the base operator
-         **/
-
+        // Finds out the index of the columns that are required from the base operator.
         Schema baseSchema = base.getSchema();
         attrIndex = new int[attrSet.size()];
-        //System.out.println("Project---Schema: ----------in open-----------");
-        //System.out.println("base Schema---------------");
-        //Debug.PPrint(baseSchema);
+
         for (int i = 0; i < attrSet.size(); i++) {
             Attribute attr = (Attribute) attrSet.elementAt(i);
             int index = baseSchema.indexOf(attr);
             attrIndex[i] = index;
-
-            //  Debug.PPrint(attr);
-            //System.out.println("  "+index+"  ");
         }
 
-        if (base.open())
-            return true;
-        else
-            return false;
+        return base.open();
     }
 
     /**
