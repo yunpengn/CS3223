@@ -77,10 +77,10 @@ public class Batch implements Serializable {
     }
 
     /**
-     * Removes all tuples stored in this batch.
+     * @return true if this batch does not contain any tuple.
      */
-    public void clear() {
-        tuples.clear();
+    public boolean isEmpty() {
+        return tuples.isEmpty();
     }
 
     /**
@@ -104,33 +104,6 @@ public class Batch implements Serializable {
     }
 
     /**
-     * Checks the index of a given tuple in this page. O(n) operation.
-     *
-     * @param t is the tuple to be checked.
-     * @return the index of the tuple.
-     */
-    public int indexOf(Tuple t) {
-        return tuples.indexOf(t);
-    }
-
-    /**
-     * Inserts a new tuple after a certain index.
-     *
-     * @param t is the tuple to be inserted.
-     * @param i is the index to be inserted at.
-     */
-    public void insertElementAt(Tuple t, int i) {
-        tuples.insertElementAt(t, i);
-    }
-
-    /**
-     * @return true if this batch does not contain any tuple.
-     */
-    public boolean isEmpty() {
-        return tuples.isEmpty();
-    }
-
-    /**
      * Removes the tuple at a given index.
      *
      * @param i is the index.
@@ -140,12 +113,11 @@ public class Batch implements Serializable {
     }
 
     /**
-     * Sets (changes) the tuple at a certain index.
+     * Getter for tuples.
      *
-     * @param t is the new tuple.
-     * @param i is the index.
+     * @return the underlying vector storing all tuples.
      */
-    public void setElementAt(Tuple t, int i) {
-        tuples.setElementAt(t, i);
+    public Vector<Tuple> getTuples() {
+        return tuples;
     }
 }
