@@ -47,7 +47,7 @@ public class Sort extends Operator {
         // Phase 1: generate sorted runs using in-memory sorting algorithms.
         int numOfRuns = generateSortedRuns();
         // Phase 2: merge sorted runs together (could be in multiple passes).
-        return mergeRuns(numOfRuns);
+        return mergeRuns(numOfRuns) <= 1;
     }
 
     /**
@@ -85,8 +85,18 @@ public class Sort extends Operator {
         return numOfRuns;
     }
 
-    private boolean mergeRuns(int numOfRuns) {
-        return true;
+    /**
+     * Merges a given number of sorted runs in a manner similar to merge-sort.
+     *
+     * @param numOfRuns is the number of sorted runs to be merged.
+     * @return the number of sorted runs after one round of merge.
+     */
+    private int mergeRuns(int numOfRuns) {
+        // Exits if there is no more than 1 run (which means there is no need to merge anymore).
+        if (numOfRuns <= 1) {
+            return numOfRuns;
+        }
+        return -1;
     }
 
     /**
@@ -126,6 +136,7 @@ public class Sort extends Operator {
         try {
             ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream(fileName));
             stream.writeObject(tuples);
+            stream.close();
         } catch (IOException e) {
             System.err.println("Sort: unable to write sortedRun with ID=" + runID + " due to " + e);
             System.exit(1);
