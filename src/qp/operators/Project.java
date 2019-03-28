@@ -19,11 +19,6 @@ public class Project extends Operator {
     // The number of tuples per outBatch
     private int batchSize;
 
-    // The input buffer
-    private Batch inBatch;
-    // The output buffer
-    private Batch outBatch;
-
     // The index of the attributes in the base operator that are to be projected
     private int[] attrIndex;
 
@@ -96,10 +91,10 @@ public class Project extends Operator {
      */
     public Batch next() {
         // Creates a new output buffer.
-        outBatch = new Batch(batchSize);
+        Batch outBatch = new Batch(batchSize);
 
         // Returns empty if the input buffer is empty.
-        inBatch = base.next();
+        Batch inBatch = base.next();
         if (inBatch == null) {
             return null;
         }
