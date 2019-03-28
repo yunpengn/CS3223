@@ -7,6 +7,7 @@ import java.util.Vector;
 
 import qp.utils.Attribute;
 import qp.utils.Batch;
+import qp.utils.Schema;
 import qp.utils.Tuple;
 
 /**
@@ -21,6 +22,8 @@ public class Sort extends Operator {
     private final int sortKeyIndex;
     // The data type of the attribute to sort based on.
     private final int sortKeyType;
+    // The number of tuples per batch.
+    private final int batchSize;
 
     /**
      * Creates a new sort operator.
@@ -30,11 +33,13 @@ public class Sort extends Operator {
      */
     public Sort(Operator base, Attribute sortKey, int numOfBuffers) {
         super(OpType.SORT);
-        this.base = base;
-        this.sortKeyIndex = base.schema.indexOf(sortKey);
-        this.sortKeyType = base.schema.getAttribute(sortKeyIndex).getType();
-        this.numOfBuffers = numOfBuffers;
         this.schema = base.schema;
+
+        this.base = base;
+        this.sortKeyIndex = schema.indexOf(sortKey);
+        this.sortKeyType = schema.getAttribute(sortKeyIndex).getType();
+        this.numOfBuffers = numOfBuffers;
+        this.batchSize = Batch.getPageSize() / schema.getTupleSize();
     }
 
     @Override
@@ -47,7 +52,7 @@ public class Sort extends Operator {
         // Phase 1: generate sorted runs using in-memory sorting algorithms.
         int numOfRuns = generateSortedRuns();
         // Phase 2: merge sorted runs together (could be in multiple passes).
-        return mergeRuns(numOfRuns) <= 1;
+        return mergeRuns(numOfRuns) == 1;
     }
 
     /**
@@ -86,7 +91,8 @@ public class Sort extends Operator {
     }
 
     /**
-     * Merges a given number of sorted runs in a manner similar to merge-sort.
+     * Merges a given number of sorted runs in a manner similar to merge-sort. Here we use all available
+     * buffers to minimize the number of passes.
      *
      * @param numOfRuns is the number of sorted runs to be merged.
      * @return the number of sorted runs after one round of merge.
@@ -135,6 +141,7 @@ public class Sort extends Operator {
         // Saves the sorted run into disk.
         try {
             ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream(fileName));
+            // TODO: do we need to write each batch to a single file?
             stream.writeObject(tuples);
             stream.close();
         } catch (IOException e) {
