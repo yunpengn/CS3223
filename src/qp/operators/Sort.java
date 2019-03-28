@@ -2,6 +2,7 @@ package qp.operators;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Vector;
 
@@ -80,7 +81,16 @@ public class Sort extends Operator {
             tuplesInRun.sort(this::compareTuples);
 
             // Stores the sorted result into disk.
-            saveSortedRun(tuplesInRun, numOfRuns);
+            String fileName = getSortedRunFileName(numOfRuns);
+            try {
+                ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream(fileName));
+                // TODO: do we need to write each batch to a single file?
+                stream.writeObject(tuplesInRun);
+                stream.close();
+            } catch (IOException e) {
+                System.err.println("Sort: unable to write sortedRun with ID=" + numOfRuns + " due to " + e);
+                System.exit(1);
+            }
 
             // Reads in another page and prepares for the next iteration.
             inBatch = base.next();
@@ -102,7 +112,40 @@ public class Sort extends Operator {
         if (numOfRuns <= 1) {
             return numOfRuns;
         }
-        return -1;
+
+        // Uses (numOfBuffers - 1) as input buffers, and the left one as output buffer.
+        int numOfOutputRuns = 0;
+        for (int startRunID = 0; startRunID < numOfRuns; startRunID = startRunID + numOfBuffers - 1) {
+            int endRunID = Math.min(startRunID + numOfBuffers - 1, numOfRuns);
+            mergeRunsBetween(startRunID, endRunID);
+            numOfOutputRuns++;
+        }
+
+        // Continues to the next round using a recursive call.
+        return mergeRuns(numOfOutputRuns);
+    }
+
+    /**
+     * Merges the sorted runs in the range of [startRunID, endRunID). Since we have a fix number of buffer
+     * pages, we assume endRunID - startRunID <= numOfBuffers - 1.
+     *
+     * @param startRunID is the sorted run ID of the lower bound (inclusive).
+     * @param endRunID is the sorted run ID of the upper bound (exclusive).
+     *
+     * @implNote we effectively implement a k-way merge sort here.
+     */
+    private void mergeRunsBetween(int startRunID, int endRunID) {
+        // Each input sorted run has 1 buffer page.
+        Batch[] inBatches = new Batch[endRunID - startRunID];
+        // Each input sorted run has one stream to read from.
+        ObjectInputStream[] inStreams = new ObjectInputStream[endRunID - startRunID];
+        // Only 1 buffer page for output.
+        Batch outBatch = new Batch(batchSize);
+
+        // Establishes the streams and reads the first pages of each input sorted run.
+        for (int i = 0; i < endRunID - startRunID; i++) {
+
+        }
     }
 
     /**
@@ -125,28 +168,6 @@ public class Sort extends Operator {
                 return Float.compare((float) value1, (float) value2);
             default:
                 return 0;
-        }
-    }
-
-    /**
-     * Saves a list of tuples into disk.
-     *
-     * @param tuples are the tuples to be saved.
-     * @param runID is the ID of this sorted run.
-     */
-    private void saveSortedRun(Vector<Tuple> tuples, int runID) {
-        // Gets the standardized name.
-        String fileName = getSortedRunFileName(runID);
-
-        // Saves the sorted run into disk.
-        try {
-            ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream(fileName));
-            // TODO: do we need to write each batch to a single file?
-            stream.writeObject(tuples);
-            stream.close();
-        } catch (IOException e) {
-            System.err.println("Sort: unable to write sortedRun with ID=" + runID + " due to " + e);
-            System.exit(1);
         }
     }
 
