@@ -72,31 +72,10 @@ public class Sort extends Operator {
             }
 
             // Sorts the tuples using in-memory sorting algorithms.
-            tuplesInRun.sort((tuple1, tuple2) -> {
-                Object value1 = tuple1.dataAt(sortKeyIndex);
-                Object value2 = tuple2.dataAt(sortKeyIndex);
-
-                switch (sortKeyType) {
-                    case Attribute.INT:
-                        return Integer.compare((int) value1, (int) value2);
-                    case Attribute.STRING:
-                        return ((String) value1).compareTo((String) value2);
-                    case Attribute.REAL:
-                        return Float.compare((float) value1, (float) value2);
-                    default:
-                        return 0;
-                }
-            });
+            tuplesInRun.sort(this::compareTuples);
 
             // Stores the sorted result into disk.
-            String fileName = getSortedRunFileName(numOfRuns);
-            try {
-                ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream(fileName));
-                stream.writeObject(tuplesInRun);
-            } catch (IOException e) {
-                System.err.println("Sort: unable to write sortedRun with ID=" + numOfRuns + " due to " + e);
-                System.exit(1);
-            }
+            saveSortedRun(tuplesInRun, numOfRuns);
 
             // Reads in another page and prepares for the next iteration.
             inBatch = base.next();
@@ -108,6 +87,49 @@ public class Sort extends Operator {
 
     private boolean mergeRuns(int numOfRuns) {
         return true;
+    }
+
+    /**
+     * Compares two tuples based on the sort attribute.
+     *
+     * @param tuple1 is the first tuple.
+     * @param tuple2 is the second tuple.
+     * @return an integer indicating the comparision result, compatible with the {@link java.util.Comparator} interface.
+     */
+    private int compareTuples(Tuple tuple1, Tuple tuple2) {
+        Object value1 = tuple1.dataAt(sortKeyIndex);
+        Object value2 = tuple2.dataAt(sortKeyIndex);
+
+        switch (sortKeyType) {
+            case Attribute.INT:
+                return Integer.compare((int) value1, (int) value2);
+            case Attribute.STRING:
+                return ((String) value1).compareTo((String) value2);
+            case Attribute.REAL:
+                return Float.compare((float) value1, (float) value2);
+            default:
+                return 0;
+        }
+    }
+
+    /**
+     * Saves a list of tuples into disk.
+     *
+     * @param tuples are the tuples to be saved.
+     * @param runID is the ID of this sorted run.
+     */
+    private void saveSortedRun(Vector<Tuple> tuples, int runID) {
+        // Gets the standardized name.
+        String fileName = getSortedRunFileName(runID);
+
+        // Saves the sorted run into disk.
+        try {
+            ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream(fileName));
+            stream.writeObject(tuples);
+        } catch (IOException e) {
+            System.err.println("Sort: unable to write sortedRun with ID=" + runID + " due to " + e);
+            System.exit(1);
+        }
     }
 
     /**
