@@ -17,8 +17,10 @@ public class Sort extends Operator {
     private final Operator base;
     // The number of buffer pages available.
     private final int numOfBuffers;
-    // The attribute to sort based on.
-    private final Attribute sortKey;
+    // The index of the attribute to sort based on.
+    private final int sortKeyIndex;
+    // The data type of the attribute to sort based on.
+    private final int sortKeyType;
 
     /**
      * Creates a new sort operator.
@@ -29,7 +31,8 @@ public class Sort extends Operator {
     public Sort(Operator base, Attribute sortKey, int numOfBuffers) {
         super(OpType.SORT);
         this.base = base;
-        this.sortKey = sortKey;
+        this.sortKeyIndex = base.schema.indexOf(sortKey);
+        this.sortKeyType = base.schema.getAttribute(sortKeyIndex).getType();
         this.numOfBuffers = numOfBuffers;
         this.schema = base.schema;
     }
@@ -69,8 +72,21 @@ public class Sort extends Operator {
             }
 
             // Sorts the tuples using in-memory sorting algorithms.
-            // TODO: @yunpengn implements the comparator here.
-            tuplesInRun.sort((tuple1, tuple2) -> 0);
+            tuplesInRun.sort((tuple1, tuple2) -> {
+                Object value1 = tuple1.dataAt(sortKeyIndex);
+                Object value2 = tuple2.dataAt(sortKeyIndex);
+
+                switch (sortKeyType) {
+                    case Attribute.INT:
+                        return Integer.compare((int) value1, (int) value2);
+                    case Attribute.STRING:
+                        return ((String) value1).compareTo((String) value2);
+                    case Attribute.REAL:
+                        return Float.compare((float) value1, (float) value2);
+                    default:
+                        return 0;
+                }
+            });
 
             // Stores the sorted result into disk.
             String fileName = getSortedRunFileName(numOfRuns);
