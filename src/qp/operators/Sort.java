@@ -6,11 +6,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 import java.util.Vector;
 
 import qp.utils.Attribute;
 import qp.utils.Batch;
 import qp.utils.Tuple;
+import qp.utils.TupleInRun;
 
 /**
  * Applies external sort on a given relation.
@@ -151,8 +154,8 @@ public class Sort extends Operator {
     private void mergeRunsBetween(int startRunID, int endRunID, int passID, int outID) throws IOException, ClassNotFoundException {
         // Each input sorted run has 1 buffer page.
         Batch[] inBatches = new Batch[endRunID - startRunID];
-        // Records whether we have reached end-of-stream for a certain input run.
-        boolean[] inEos = new boolean[endRunID - startRunID];
+        // Records the index of the tuples that will be read next for each input run.
+        int[] inIndexes = new int[endRunID - startRunID];
         // Each input sorted run has one stream to read from.
         ObjectInputStream[] inStreams = new ObjectInputStream[endRunID - startRunID];
         for (int i = startRunID; i < endRunID; i++) {
@@ -164,16 +167,55 @@ public class Sort extends Operator {
             try {
                 inBatches[i - startRunID] = readInputBatch(inStream);
             } catch (EOFException eof) {
-                inEos[i - startRunID] = true;
                 inBatches[i - startRunID] = null;
             }
         }
 
-        // Only 1 buffer page for output.
-        Batch outBatch = new Batch(batchSize);
+        // A min-heap used later for k-way merge (representing the 1 page used for output buffer).
+        PriorityQueue<TupleInRun> outHeap = new PriorityQueue<>(batchSize, (o1, o2) -> compareTuples(o1.tuple, o2.tuple));
         // The stream for output buffer.
         String outputFileName = getSortedRunFileName(passID + 1, outID);
         ObjectOutputStream outStream = new ObjectOutputStream(new FileOutputStream(outputFileName));
+
+        // Inserts the 1st element (i.e., the smallest element) from each input buffer into the output heap.
+        for (int i = 0; i < endRunID - startRunID; i++) {
+            Batch inBatch = inBatches[i];
+            int inIndex = inIndexes[i];
+            if (inBatch == null) {
+                continue;
+            }
+            Tuple current = inBatch.elementAt(inIndex);
+            outHeap.add(new TupleInRun(current, i, inIndex));
+        }
+
+        // Continues until the output heap is empty (which means we have sorted and outputted everything).
+        while (!outHeap.isEmpty()) {
+            // Extracts and writes out the root of the output heap (which is the smallest element among all input runs).
+            TupleInRun outTuple = outHeap.poll();
+            outStream.writeObject(outTuple.tuple);
+
+            // Attempts to retrieve the next element from the same input buffer.
+            int nextBatchID = outTuple.runID;
+            int nextIndex = outTuple.tupleID + 1;
+            // Reads in the next page from the same input stream if that input buffer has been exhausted.
+            if (nextIndex == batchSize) {
+                try {
+                    inBatches[nextBatchID] = readInputBatch(inStreams[nextBatchID]);
+                } catch (EOFException eof) {
+                    inBatches[nextBatchID] = null;
+                }
+                // Resets the index for that input buffer to be 0.
+                nextIndex = 0;
+            }
+
+            // Inserts the next element into the output heap if that input buffer is not empty.
+            Batch inBatch = inBatches[nextBatchID];
+            if (inBatch == null) {
+                continue;
+            }
+            Tuple nextTuple = inBatch.elementAt(nextIndex);
+            outHeap.add(new TupleInRun(nextTuple, nextBatchID, nextIndex));
+        }
 
         // Closes the resources used.
         for (ObjectInputStream inStream: inStreams) {
