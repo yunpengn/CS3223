@@ -61,7 +61,7 @@ public class Operator {
      * @return the next page of tuples.
      */
     public Batch next() {
-        System.out.println("Operator:  ");
+        System.out.println("Operator: " + opType);
         return null;
     }
 

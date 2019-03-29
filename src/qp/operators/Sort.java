@@ -31,6 +31,8 @@ public class Sort extends Operator {
     private final int batchSize;
     // The input stream from which we read the sorted result.
     private ObjectInputStream sortedStream;
+    // Records whether we have reached out-of-stream for the sorted result.
+    private boolean eos = false;
 
     /**
      * Creates a new sort operator.
@@ -287,5 +289,55 @@ public class Sort extends Operator {
      */
     private String getSortedRunFileName(int passID, int runID) {
         return "Sort-run-" + passID + "-" + runID;
+    }
+
+    /**
+     * @return the next sorted page of tuples from the sorting result.
+     */
+    @Override
+    public Batch next() {
+        if (eos) {
+            close();
+            return null;
+        }
+
+        Batch outBatch = new Batch(batchSize);
+        while (!outBatch.isFull()) {
+            try {
+                Tuple data = (Tuple) sortedStream.readObject();
+                outBatch.add(data);
+            } catch (ClassNotFoundException cnf) {
+                System.err.printf("Sort: class not found for reading from sortedStream due to %s", cnf);
+                System.exit(1);
+            } catch (EOFException EOF) {
+                // Sends the incomplete page and close in the next call.
+                eos = true;
+                return outBatch;
+            } catch (IOException e) {
+                System.err.printf("Sort: error reading from sortedStream due to %s", e);
+                System.exit(1);
+            }
+        }
+        return outBatch;
+    }
+
+    /**
+     * Closes the operator by gracefully closing the resources opened.
+     *
+     * @return true if the operator is closed successfully.
+     */
+    @Override
+    public boolean close() {
+        // Calls the close method in super-class for compatibility.
+        super.close();
+
+        // Closes the sorted stream previously opened.
+        try {
+            sortedStream.close();
+        } catch (IOException e) {
+            System.err.printf("Sort: unable to close sortedStream due to %s", e);
+            return false;
+        }
+        return true;
     }
 }
