@@ -29,6 +29,8 @@ public class Sort extends Operator {
     private final int sortKeyType;
     // The number of tuples per batch.
     private final int batchSize;
+    // The input stream from which we read the sorted result.
+    private ObjectInputStream sortedStream;
 
     /**
      * Creates a new sort operator.
@@ -47,6 +49,13 @@ public class Sort extends Operator {
         this.batchSize = Batch.getPageSize() / schema.getTupleSize();
     }
 
+    /**
+     * Opens the operator to prepare all the necessary resources. In the current implementation,
+     * the {@link Sort} operator is not iterator-based. We would materialize it by finishing the
+     * whole sorting when we open it.
+     *
+     * @return true if the operator is open successfully.
+     */
     @Override
     public boolean open() {
         // Makes sure the base operator can open successfully first.
@@ -117,6 +126,12 @@ public class Sort extends Operator {
     private int mergeRuns(int numOfRuns, int passID) {
         // Exits if there is no more than 1 run (which means there is no need to merge anymore).
         if (numOfRuns <= 1) {
+            try {
+                String fileName = getSortedRunFileName(passID, numOfRuns - 1);
+                sortedStream = new ObjectInputStream(new FileInputStream(fileName));
+            } catch (IOException e) {
+                System.err.printf("Sort: cannot create sortedStream due to %s", e);
+            }
             return numOfRuns;
         }
 
