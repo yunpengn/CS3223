@@ -171,8 +171,6 @@ public class Sort extends Operator {
     private void mergeRunsBetween(int startRunID, int endRunID, int passID, int outID) throws IOException, ClassNotFoundException {
         // Each input sorted run has 1 buffer page.
         Batch[] inBatches = new Batch[endRunID - startRunID];
-        // Records the index of the tuples that will be read next for each input run.
-        int[] inIndexes = new int[endRunID - startRunID];
         // Each input sorted run has one stream to read from.
         ObjectInputStream[] inStreams = new ObjectInputStream[endRunID - startRunID];
         for (int i = startRunID; i < endRunID; i++) {
@@ -197,12 +195,11 @@ public class Sort extends Operator {
         // Inserts the 1st element (i.e., the smallest element) from each input buffer into the output heap.
         for (int i = 0; i < endRunID - startRunID; i++) {
             Batch inBatch = inBatches[i];
-            int inIndex = inIndexes[i];
             if (inBatch == null) {
                 continue;
             }
-            Tuple current = inBatch.elementAt(inIndex);
-            outHeap.add(new TupleInRun(current, i, inIndex));
+            Tuple current = inBatch.elementAt(0);
+            outHeap.add(new TupleInRun(current, i, 0));
         }
 
         // Continues until the output heap is empty (which means we have sorted and outputted everything).
