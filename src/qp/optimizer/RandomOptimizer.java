@@ -12,6 +12,8 @@ import qp.operators.Operator;
 import qp.operators.PageNestedJoin;
 import qp.operators.Project;
 import qp.operators.Select;
+import qp.operators.Sort;
+import qp.operators.SortMergeJoin;
 import qp.utils.Attribute;
 import qp.utils.Condition;
 import qp.utils.RandomNum;
@@ -440,10 +442,18 @@ public class RandomOptimizer {
                     return bnj;
 
                 case JoinType.SORT_MERGE_JOIN:
-                    PageNestedJoin sm = new PageNestedJoin((Join) node);
-                    // Add other code here.
+                    SortMergeJoin smj = new SortMergeJoin((Join) node);
 
-                    return sm;
+                    Vector<Attribute> leftAttrs = new Vector<>();
+                    leftAttrs.add(smj.getCondition().getLeft());
+                    smj.setLeft(new Sort(left, leftAttrs, numOfBuff));
+
+                    Vector<Attribute> rightAttrs = new Vector<>();
+                    rightAttrs.add((Attribute) smj.getCondition().getRight());
+                    smj.setRight(new Sort(right, rightAttrs, numOfBuff));
+
+                    smj.setNumOfBuffer(numOfBuff);
+                    return smj;
 
                 case JoinType.HASH_JOIN:
                     PageNestedJoin hj = new PageNestedJoin((Join) node);

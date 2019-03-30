@@ -37,7 +37,7 @@ public class Sort extends Operator {
     /**
      * Creates a new sort operator.
      *
-     * @param base is the base operator.
+     * @param base         is the base operator.
      * @param numOfBuffers is the number of buffers (in pages) available.
      */
     public Sort(Operator base, Vector attrList, int numOfBuffers) {
@@ -107,7 +107,7 @@ public class Sort extends Operator {
             try {
                 ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream(fileName));
                 // TODO: do we need to write each batch to a single file?
-                for (Tuple tuple: tuplesInRun) {
+                for (Tuple tuple : tuplesInRun) {
                     stream.writeObject(tuple);
                 }
                 stream.close();
@@ -129,7 +129,7 @@ public class Sort extends Operator {
      * buffers to minimize the number of passes.
      *
      * @param numOfRuns is the number of sorted runs to be merged.
-     * @param passID is the ID of the current pass.
+     * @param passID    is the ID of the current pass.
      * @return the number of sorted runs after one round of merge.
      */
     private int mergeRuns(int numOfRuns, int passID) {
@@ -169,10 +169,9 @@ public class Sort extends Operator {
      * pages, we assume endRunID - startRunID <= numOfBuffers - 1.
      *
      * @param startRunID is the sorted run ID of the lower bound (inclusive).
-     * @param endRunID is the sorted run ID of the upper bound (exclusive).
-     * @param passID is the ID of the current pass.
-     * @param outID is the sorted run ID of the output.
-     *
+     * @param endRunID   is the sorted run ID of the upper bound (exclusive).
+     * @param passID     is the ID of the current pass.
+     * @param outID      is the sorted run ID of the output.
      * @implNote we effectively implement a k-way merge sort here.
      */
     private void mergeRunsBetween(int startRunID, int endRunID, int passID, int outID) throws IOException, ClassNotFoundException {
@@ -254,7 +253,7 @@ public class Sort extends Operator {
         }
 
         // Closes the resources used.
-        for (ObjectInputStream inStream: inStreams) {
+        for (ObjectInputStream inStream : inStreams) {
             inStream.close();
         }
         outStream.close();
@@ -281,7 +280,7 @@ public class Sort extends Operator {
      * Provides the file name of a generated sorted run based on its run ID.
      *
      * @param passID is the ID of the current pass.
-     * @param runID is the ID of the sorted run.
+     * @param runID  is the ID of the sorted run.
      */
     private String getSortedRunFileName(int passID, int runID) {
         return "Sort-run-" + uuid + "-" + passID + "-" + runID;
@@ -319,6 +318,7 @@ public class Sort extends Operator {
 
     /**
      * Closes the operator by gracefully closing the resources opened.
+     * TODO: delete generated files when closing.
      *
      * @return true if the operator is closed successfully.
      */

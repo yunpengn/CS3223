@@ -15,6 +15,6 @@ public class JoinType {
      * @return the number of join types.
      */
     public static int numJoinTypes() {
-        return 2;
+        return 3;
     }
 }
