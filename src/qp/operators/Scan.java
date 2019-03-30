@@ -31,10 +31,9 @@ public class Scan extends Operator {
      * Creates a new scan operator.
      *
      * @param tableName is the name of the table.
-     * @param type is the operator type (i.e., SCAN).
      */
-    public Scan(String tableName, int type) {
-        super(type);
+    public Scan(String tableName) {
+        super(OpType.SCAN);
         this.tableName = tableName;
         fileName = tableName + ".tbl";
     }
@@ -117,7 +116,7 @@ public class Scan extends Operator {
     @Override
     public Object clone() {
         String newTable = tableName;
-        Scan newScan = new Scan(newTable, opType);
+        Scan newScan = new Scan(newTable);
         newScan.setSchema((Schema) schema.clone());
         return newScan;
     }

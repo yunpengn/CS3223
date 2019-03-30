@@ -431,7 +431,6 @@ public class RandomOptimizer {
                     pnj.setNumOfBuffer(numOfBuff);
                     return pnj;
 
-                // TODO: replace simple nested join with hash join
                 case JoinType.BLOCK_NESTED_JOIN:
                     BlockNestedJoin bnj = new BlockNestedJoin((Join) node);
                     bnj.setLeft(left);
