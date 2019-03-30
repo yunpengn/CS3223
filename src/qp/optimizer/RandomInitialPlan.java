@@ -7,6 +7,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import qp.operators.Distinct;
 import qp.operators.Join;
 import qp.operators.JoinType;
 import qp.operators.OpType;
@@ -140,7 +141,7 @@ public class RandomInitialPlan {
 
         // Repeats until all the join conditions are considered.
         while (bitCList.cardinality() != numOfJoin) {
-            // chooses another join condition if this condition is already considered.
+            // Chooses another join condition if this condition is already considered.
             while (bitCList.get(joinNum)) {
                 joinNum = RandomNum.randInt(0, numOfJoin - 1);
             }
@@ -154,6 +155,7 @@ public class RandomInitialPlan {
             join.setNodeIndex(joinNum);
             Schema newSchema = leftOp.getSchema().joinWith(rightOp.getSchema());
             join.setSchema(newSchema);
+
             // Randomly selects a join type.
             int numOfJoinTypes = JoinType.numJoinTypes();
             int joinType = RandomNum.randInt(0, numOfJoinTypes - 1);
@@ -190,6 +192,7 @@ public class RandomInitialPlan {
         if (!sqlQuery.getIsDistinct()) {
             return;
         }
+        root = new Distinct(root);
     }
 
     /**
