@@ -25,22 +25,6 @@ public class SQLQuery {
     private boolean isDistinct = false;
 
     /**
-     * Constructs a new SQL query object.
-     *
-     * @param projectList is the project list.
-     * @param fromList is the from list.
-     * @param conditionList is the condition list.
-     * @param groupByList is the groupBy list.
-     */
-    public SQLQuery(Vector projectList, Vector fromList, Vector conditionList, Vector groupByList) {
-        this.projectList = projectList;
-        this.fromList = fromList;
-        this.conditionList = conditionList;
-        this.groupByList = groupByList;
-        splitConditionList(conditionList);
-    }
-
-    /**
      * Constructs a new SQL query object. Uses this constructor when there is no GROUP_BY clause.
      *
      * @param projectList is the project list.
@@ -152,5 +136,23 @@ public class SQLQuery {
         }
 
         return joinList.size();
+    }
+
+    /**
+     * Setter for isDistinct.
+     *
+     * @param isDistinct means whether DISTINCT is present in the query.
+     */
+    public void setIsDistinct(boolean isDistinct) {
+        this.isDistinct = isDistinct;
+    }
+
+    /**
+     * Getter for isDistinct.
+     *
+     * @return whether DISTINCT is present in the query.
+     */
+    public boolean getIsDistinct() {
+        return this.isDistinct;
     }
 }

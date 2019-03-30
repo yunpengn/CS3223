@@ -1,6 +1,7 @@
 package qp.parser;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.StringReader;
 import java.util.Vector;
@@ -27,6 +28,17 @@ public class ParserTest {
     }
 
     @Test
+    public void selectDistinctStarWithoutWhere() throws Exception {
+        SQLQuery query = parseString("SELECT DISTINCT * FROM customers");
+        assertEquals(1, query.getFromList().size());
+        assertEquals("customers", query.getFromList().elementAt(0));
+        assertEquals(0, query.getSelectionList().size());
+        assertEquals(0, query.getProjectList().size());
+        assertEquals(0, query.getNumJoin());
+        assertTrue(query.getIsDistinct());
+    }
+
+    @Test
     public void selectOneAttributeWithoutWhere() throws Exception {
         SQLQuery query = parseString("SELECT customers.age FROM customers");
         assertEquals(1, query.getFromList().size());
@@ -35,6 +47,18 @@ public class ParserTest {
         assertEquals(1, query.getProjectList().size());
         assertAttributeName(query.getProjectList(), 0, "age");
         assertEquals(0, query.getNumJoin());
+    }
+
+    @Test
+    public void selectDistinctOneAttributeWithoutWhere() throws Exception {
+        SQLQuery query = parseString("SELECT DISTINCT customers.age FROM customers");
+        assertEquals(1, query.getFromList().size());
+        assertEquals("customers", query.getFromList().elementAt(0));
+        assertEquals(0, query.getSelectionList().size());
+        assertEquals(1, query.getProjectList().size());
+        assertAttributeName(query.getProjectList(), 0, "age");
+        assertEquals(0, query.getNumJoin());
+        assertTrue(query.getIsDistinct());
     }
 
     @Test
@@ -50,6 +74,19 @@ public class ParserTest {
     }
 
     @Test
+    public void selectDistinctMultiAttributesWithoutWhere() throws Exception {
+        SQLQuery query = parseString("SELECT DISTINCT customers.age, customers.name FROM customers");
+        assertEquals(1, query.getFromList().size());
+        assertEquals("customers", query.getFromList().elementAt(0));
+        assertEquals(0, query.getSelectionList().size());
+        assertEquals(2, query.getProjectList().size());
+        assertAttributeName(query.getProjectList(), 0, "age");
+        assertAttributeName(query.getProjectList(), 1, "name");
+        assertEquals(0, query.getNumJoin());
+        assertTrue(query.getIsDistinct());
+    }
+
+    @Test
     public void selectWithWhereEqual() throws Exception {
         SQLQuery query = parseString("SELECT customers.age FROM customers WHERE customers.size = \"100\"");
         assertEquals(1, query.getFromList().size());
@@ -62,6 +99,19 @@ public class ParserTest {
     }
 
     @Test
+    public void selectDistinctWithWhereEqual() throws Exception {
+        SQLQuery query = parseString("SELECT DISTINCT customers.age FROM customers WHERE customers.size = \"100\"");
+        assertEquals(1, query.getFromList().size());
+        assertEquals("customers", query.getFromList().elementAt(0));
+        assertEquals(1, query.getSelectionList().size());
+        assertSelectCondition(query.getSelectionList(), 0, "size", "100", Condition.EQUAL);
+        assertEquals(1, query.getProjectList().size());
+        assertAttributeName(query.getProjectList(), 0, "age");
+        assertEquals(0, query.getNumJoin());
+        assertTrue(query.getIsDistinct());
+    }
+
+    @Test
     public void selectWithWhereGreaterThan() throws Exception {
         SQLQuery query = parseString("SELECT customers.name FROM customers WHERE customers.age > \"25\"");
         assertEquals(1, query.getFromList().size());
@@ -71,6 +121,44 @@ public class ParserTest {
         assertEquals(1, query.getProjectList().size());
         assertAttributeName(query.getProjectList(), 0, "name");
         assertEquals(0, query.getNumJoin());
+    }
+
+    @Test
+    public void selectDistinctWithWhereGreaterThan() throws Exception {
+        SQLQuery query = parseString("SELECT DISTINCT customers.name FROM customers WHERE customers.age > \"25\"");
+        assertEquals(1, query.getFromList().size());
+        assertEquals("customers", query.getFromList().elementAt(0));
+        assertEquals(1, query.getSelectionList().size());
+        assertSelectCondition(query.getSelectionList(), 0, "age", "25", Condition.GREATER_THAN);
+        assertEquals(1, query.getProjectList().size());
+        assertAttributeName(query.getProjectList(), 0, "name");
+        assertEquals(0, query.getNumJoin());
+        assertTrue(query.getIsDistinct());
+    }
+
+    @Test
+    public void selectWithoutWhereWithGroupBy() throws Exception {
+        SQLQuery query = parseString("SELECT customers.name FROM customers GROUPBY customers.name");
+        assertEquals(1, query.getFromList().size());
+        assertEquals("customers", query.getFromList().elementAt(0));
+        assertEquals(0, query.getSelectionList().size());
+        assertEquals(1, query.getProjectList().size());
+        assertAttributeName(query.getProjectList(), 0, "name");
+        assertEquals(1, query.getGroupByList().size());
+        assertAttributeName(query.getGroupByList(), 0, "name");
+    }
+
+    @Test
+    public void selectDistinctWithoutWhereWithGroupBy() throws Exception {
+        SQLQuery query = parseString("SELECT DISTINCT customers.name FROM customers GROUPBY customers.name");
+        assertEquals(1, query.getFromList().size());
+        assertEquals("customers", query.getFromList().elementAt(0));
+        assertEquals(0, query.getSelectionList().size());
+        assertEquals(1, query.getProjectList().size());
+        assertAttributeName(query.getProjectList(), 0, "name");
+        assertEquals(1, query.getGroupByList().size());
+        assertAttributeName(query.getGroupByList(), 0, "name");
+        assertTrue(query.getIsDistinct());
     }
 
     private SQLQuery parseString(String input) throws Exception {
