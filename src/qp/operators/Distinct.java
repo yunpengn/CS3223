@@ -2,6 +2,7 @@ package qp.operators;
 
 import java.util.Vector;
 
+import qp.utils.Attribute;
 import qp.utils.Batch;
 
 /**
@@ -12,6 +13,8 @@ public class Distinct extends Operator {
     private final Vector projectList;
     // The base operator.
     private Operator base;
+    // The sort operator applied on the base operator.
+    private Sort sortedBase;
     // The number of buffers available
     private int numOfBuffer;
 
@@ -28,7 +31,9 @@ public class Distinct extends Operator {
 
     @Override
     public boolean open() {
-        return base.open();
+        Attribute attribute = (Attribute) projectList.elementAt(0);
+        sortedBase = new Sort(base, attribute, numOfBuffer);
+        return sortedBase.open();
     }
 
     @Override
