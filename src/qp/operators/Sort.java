@@ -89,6 +89,8 @@ public class Sort extends Operator {
             // Reads in as many tuples as possible (until either there is no more tuples or reaches buffer limit).
             for (int i = 0; i < numOfBuffers && inBatch != null; i++) {
                 tuplesInRun.addAll(inBatch.getTuples());
+                // Do NOT read a new page if the current page is the last page of the current sorted run
+                // (because we do not have any more memory buffer).
                 if (i != numOfBuffers - 1) {
                     inBatch = base.next();
                 }
