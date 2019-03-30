@@ -89,7 +89,9 @@ public class Sort extends Operator {
             // Reads in as many tuples as possible (until either there is no more tuples or reaches buffer limit).
             for (int i = 0; i < numOfBuffers && inBatch != null; i++) {
                 tuplesInRun.addAll(inBatch.getTuples());
-                inBatch = base.next();
+                if (i != numOfBuffers - 1) {
+                    inBatch = base.next();
+                }
             }
 
             // Sorts the tuples using in-memory sorting algorithms.
