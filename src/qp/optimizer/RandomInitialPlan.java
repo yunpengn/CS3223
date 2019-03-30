@@ -174,7 +174,7 @@ public class RandomInitialPlan {
      * Crates a project Operator.
      */
     private void createProjectOperator() {
-        if (sqlQuery.getProjectList() == null) {
+        if (sqlQuery.getProjectList() == null || sqlQuery.getProjectList().isEmpty()) {
             return;
         }
 
