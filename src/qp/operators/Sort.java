@@ -26,9 +26,7 @@ public class Sort extends Operator {
     // The number of buffer pages available.
     private final int numOfBuffers;
     // The index of the attribute to sort based on.
-    private final int sortKeyIndex;
-    // The data type of the attribute to sort based on.
-    private final int sortKeyType;
+    private final Vector<Integer> sortKeyIndices = new Vector<>();
     // The number of tuples per batch.
     private final int batchSize;
     // The input stream from which we read the sorted result.
@@ -42,15 +40,18 @@ public class Sort extends Operator {
      * @param base is the base operator.
      * @param numOfBuffers is the number of buffers (in pages) available.
      */
-    public Sort(Operator base, Attribute sortKey, int numOfBuffers) {
+    public Sort(Operator base, Vector attrList, int numOfBuffers) {
         super(OpType.SORT);
         this.schema = base.schema;
 
         this.base = base;
-        this.sortKeyIndex = schema.indexOf(sortKey);
-        this.sortKeyType = schema.getAttribute(sortKeyIndex).getType();
         this.numOfBuffers = numOfBuffers;
         this.batchSize = Batch.getPageSize() / schema.getTupleSize();
+
+        for (int i = 0; i < attrList.size(); i++) {
+            Attribute attribute = (Attribute) attrList.elementAt(i);
+            sortKeyIndices.add(schema.indexOf(attribute));
+        }
     }
 
     /**
@@ -267,7 +268,13 @@ public class Sort extends Operator {
      * @return an integer indicating the comparision result, compatible with the {@link java.util.Comparator} interface.
      */
     private int compareTuples(Tuple tuple1, Tuple tuple2) {
-        return Tuple.compareTuples(tuple1, tuple2, sortKeyIndex);
+        for (int sortKeyIndex: sortKeyIndices) {
+            int result = Tuple.compareTuples(tuple1, tuple2, sortKeyIndex);
+            if (result != 0) {
+                return result;
+            }
+        }
+        return 0;
     }
 
     /**

@@ -50,8 +50,7 @@ public class Distinct extends Operator {
             projectIndices.add(schema.indexOf(attribute));
         }
 
-        Attribute attribute = (Attribute) projectList.elementAt(0);
-        sortedBase = new Sort(base, attribute, numOfBuffer);
+        sortedBase = new Sort(base, projectList, numOfBuffer);
         return sortedBase.open();
     }
 
