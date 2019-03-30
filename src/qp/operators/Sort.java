@@ -135,7 +135,7 @@ public class Sort extends Operator {
         // Exits if there is no more than 1 run (which means there is no need to merge anymore).
         if (numOfRuns <= 1) {
             try {
-                String fileName = getSortedRunFileName(passID, numOfRuns - 1);
+                String fileName = getSortedRunFileName(passID - 1, numOfRuns - 1);
                 sortedStream = new ObjectInputStream(new FileInputStream(fileName));
             } catch (IOException e) {
                 System.err.printf("Sort: cannot create sortedStream due to %s", e.toString());
@@ -180,7 +180,7 @@ public class Sort extends Operator {
         // Each input sorted run has one stream to read from.
         ObjectInputStream[] inStreams = new ObjectInputStream[endRunID - startRunID];
         for (int i = startRunID; i < endRunID; i++) {
-            String inputFileName = getSortedRunFileName(passID, i);
+            String inputFileName = getSortedRunFileName(passID - 1, i);
             ObjectInputStream inStream = new ObjectInputStream(new FileInputStream(inputFileName));
             inStreams[i - startRunID] = inStream;
 
@@ -195,7 +195,7 @@ public class Sort extends Operator {
         // A min-heap used later for k-way merge (representing the 1 page used for output buffer).
         PriorityQueue<TupleInRun> outHeap = new PriorityQueue<>(batchSize, (o1, o2) -> compareTuples(o1.tuple, o2.tuple));
         // The stream for output buffer.
-        String outputFileName = getSortedRunFileName(passID + 1, outID);
+        String outputFileName = getSortedRunFileName(passID, outID);
         ObjectOutputStream outStream = new ObjectOutputStream(new FileOutputStream(outputFileName));
 
         // Inserts the 1st element (i.e., the smallest element) from each input buffer into the output heap.
