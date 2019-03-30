@@ -135,7 +135,7 @@ public class Sort extends Operator {
                 String fileName = getSortedRunFileName(passID, numOfRuns - 1);
                 sortedStream = new ObjectInputStream(new FileInputStream(fileName));
             } catch (IOException e) {
-                System.err.printf("Sort: cannot create sortedStream due to %s", e);
+                System.err.printf("Sort: cannot create sortedStream due to %s", e.toString());
             }
             return numOfRuns;
         }
@@ -147,10 +147,10 @@ public class Sort extends Operator {
             try {
                 mergeRunsBetween(startRunID, endRunID, passID, numOfOutputRuns);
             } catch (IOException e) {
-                System.err.printf("Sort: cannot mergeRuns on passID=%d for [%d, %d) due to %s", passID, startRunID, endRunID, e);
+                System.err.printf("Sort: cannot mergeRuns on passID=%d for [%d, %d) due to %s", passID, startRunID, endRunID, e.toString());
                 System.exit(1);
             } catch (ClassNotFoundException e) {
-                System.err.printf("Sort: class not found on passID=%d for [%d, %d) due to %s", passID, startRunID, endRunID, e);
+                System.err.printf("Sort: class not found on passID=%d for [%d, %d) due to %s", passID, startRunID, endRunID, e.toString());
                 System.exit(1);
             }
             numOfOutputRuns++;
@@ -307,14 +307,14 @@ public class Sort extends Operator {
                 Tuple data = (Tuple) sortedStream.readObject();
                 outBatch.add(data);
             } catch (ClassNotFoundException cnf) {
-                System.err.printf("Sort: class not found for reading from sortedStream due to %s", cnf);
+                System.err.printf("Sort: class not found for reading from sortedStream due to %s", cnf.toString());
                 System.exit(1);
             } catch (EOFException EOF) {
                 // Sends the incomplete page and close in the next call.
                 eos = true;
                 return outBatch;
             } catch (IOException e) {
-                System.err.printf("Sort: error reading from sortedStream due to %s", e);
+                System.err.printf("Sort: error reading from sortedStream due to %s", e.toString());
                 System.exit(1);
             }
         }
@@ -335,7 +335,7 @@ public class Sort extends Operator {
         try {
             sortedStream.close();
         } catch (IOException e) {
-            System.err.printf("Sort: unable to close sortedStream due to %s", e);
+            System.err.printf("Sort: unable to close sortedStream due to %s", e.toString());
             return false;
         }
         return true;
