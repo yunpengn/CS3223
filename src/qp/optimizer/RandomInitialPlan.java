@@ -3,9 +3,8 @@ package qp.optimizer;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.BitSet;
-import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Vector;
+import java.util.Map;
 
 import qp.operators.Distinct;
 import qp.operators.Join;
@@ -197,18 +196,14 @@ public class RandomInitialPlan {
 
     /**
      * Replaces the old Operator with new Operator.
-     * TODO [TBD]: refactor hashtable access to list access.
      *
      * @param oldOp is the old Operator to be replaced.
      * @param newOp is the new Operator.
      */
     private void modifyHashtable(Operator oldOp, Operator newOp) {
-        Enumeration e = tableNameToOperator.keys();
-        while (e.hasMoreElements()) {
-            String key = (String) e.nextElement();
-            Operator temp = tableNameToOperator.get(key);
-            if (temp == oldOp) {
-                tableNameToOperator.put(key, newOp);
+        for (Map.Entry<String, Operator> entry: tableNameToOperator.entrySet()) {
+            if (entry.getValue() == oldOp) {
+                tableNameToOperator.put(entry.getKey(), newOp);
             }
         }
     }
