@@ -2,8 +2,6 @@ package qp.optimizer;
 
 import java.util.Vector;
 
-import org.w3c.dom.Attr;
-
 import qp.operators.BlockNestedJoin;
 import qp.operators.Debug;
 import qp.operators.Distinct;
@@ -445,8 +443,15 @@ public class RandomOptimizer {
 
                 case JoinType.SORT_MERGE_JOIN:
                     SortMergeJoin smj = new SortMergeJoin((Join) node);
-                    smj.setLeft(new Sort(left, smj.getCondition().getLeft(), numOfBuff));
-                    smj.setRight(new Sort(right, (Attribute) smj.getCondition().getRight(), numOfBuff));
+
+                    Vector<Attribute> leftAttrs = new Vector<>();
+                    leftAttrs.add(smj.getCondition().getLeft());
+                    smj.setLeft(new Sort(left, leftAttrs, numOfBuff));
+
+                    Vector<Attribute> rightAttrs = new Vector<>();
+                    rightAttrs.add((Attribute) smj.getCondition().getRight());
+                    smj.setRight(new Sort(right, rightAttrs, numOfBuff));
+
                     smj.setNumOfBuffer(numOfBuff);
                     return smj;
 
