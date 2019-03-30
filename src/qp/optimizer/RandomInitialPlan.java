@@ -24,16 +24,10 @@ import qp.utils.Schema;
  * Prepares a random initial plan for the given SQL query. See the README file for more details.
  */
 public class RandomInitialPlan {
-    // Vector of Vectors of Select + From + Where + GroupBy.
+    // The SQL query to create initial plan for.
     private final SQLQuery sqlQuery;
-
-    // TODO: add generic types to all collection classes.
-    // List of join conditions.
-    private Vector joinList;
-
     // Name to the Operator hashtable.
     private Hashtable<String, Operator> tableNameToOperator;
-
     // Root of the query plan tree.
     private Operator root;
 
@@ -42,7 +36,6 @@ public class RandomInitialPlan {
      */
     public RandomInitialPlan(SQLQuery sqlQuery) {
         this.sqlQuery = sqlQuery;
-        joinList = sqlQuery.getJoinList();
     }
 
     /**
@@ -65,6 +58,7 @@ public class RandomInitialPlan {
         createSelectOperators();
         createJoinOperators();
         createProjectOperator();
+        createDistinctOperator();
 
         return root;
     }
@@ -148,7 +142,7 @@ public class RandomInitialPlan {
             while (bitCList.get(joinNum)) {
                 joinNum = RandomNum.randInt(0, numOfJoin - 1);
             }
-            Condition condition = (Condition) joinList.elementAt(joinNum);
+            Condition condition = (Condition) sqlQuery.getJoinList().elementAt(joinNum);
             String leftTable = condition.getLeft().getTabName();
             String rightTable = ((Attribute) condition.getRight()).getTabName();
 
@@ -185,6 +179,15 @@ public class RandomInitialPlan {
         root = new Project(base, sqlQuery.getProjectList());
         Schema newSchema = base.getSchema().subSchema(sqlQuery.getProjectList());
         root.setSchema(newSchema);
+    }
+
+    /**
+     * Creates a distinct operator.
+     */
+    private void createDistinctOperator() {
+        if (!sqlQuery.getIsDistinct()) {
+            return;
+        }
     }
 
     /**
