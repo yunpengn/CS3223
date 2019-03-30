@@ -158,7 +158,11 @@ public class PlanCost {
                 joinCost = leftBlocks * rightPages;
                 break;
             case JoinType.SORT_MERGE_JOIN:
-                joinCost = 0;
+                int leftPasses = (int) Math.ceil(Math.log(Math.ceil(leftPages / numOfBuffer)) / Math.log(numOfBuffer - 1)) + 1;
+                int rightPasses = (int) Math.ceil(Math.log(Math.ceil(rightPages / numOfBuffer)) / Math.log(numOfBuffer - 1)) + 1;
+                int leftSortCost = 2 * leftPages * leftPasses;
+                int rightSortCost = 2 * rightPages * rightPasses;
+                joinCost = leftSortCost + rightSortCost + rightPages;
                 break;
             case JoinType.HASH_JOIN:
                 joinCost = 0;

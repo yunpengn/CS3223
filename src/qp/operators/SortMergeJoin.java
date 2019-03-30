@@ -1,6 +1,7 @@
 package qp.operators;
 
 import qp.utils.Attribute;
+import qp.utils.Batch;
 
 public class SortMergeJoin extends Join {
     // Index of the join attribute in left table
@@ -40,6 +41,8 @@ public class SortMergeJoin extends Join {
     @Override
     public boolean open() {
         // Sorts the left & right relation.
+        left.open();
+        right.open();
 
         // Gets the join attribute from left & right table.
         Attribute leftAttr = con.getLeft();
@@ -54,5 +57,27 @@ public class SortMergeJoin extends Join {
         eosRight = false;
 
         return super.open();
+    }
+
+    /**
+     * Selects tuples satisfying the join condition from input buffers and returns.
+     *
+     * @return the next page of output tuples.
+     */
+    @Override
+    public Batch next() {
+        return null;
+    }
+
+    /**
+     * Closes this operator by closing left & right operators.
+     *
+     * @return true if both left and right operators are closed successfully.
+     */
+    @Override
+    public boolean close() {
+        boolean isLeftClosed = left.close();
+        boolean isRightClosed = right.close();
+        return isLeftClosed & isRightClosed;
     }
 }
