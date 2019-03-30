@@ -93,6 +93,10 @@ public class QueryMain {
             try {
                 temp = in.readLine();
                 int numBuff = Integer.parseInt(temp);
+                if (numBuff < 3) {
+                    System.out.println("Minimum 3 buffers are required for join or external sort.");
+                    System.exit(1);
+                }
                 BufferManager bm = new BufferManager(numBuff, numOfJoin);
             } catch (Exception e) {
                 e.printStackTrace();
