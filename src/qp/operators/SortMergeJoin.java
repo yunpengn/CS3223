@@ -110,7 +110,7 @@ public class SortMergeJoin extends Join {
             // Joins tuples in the partition if partition is not empty.
             if (leftPartition.size() != 0 && rightPartition.size() != 0) {
                 for (; i < leftPartition.size(); i++) {
-                    for (; j < leftPartition.size();) {
+                    for (; j < rightPartition.size(); ) {
                         Tuple outTuple = leftPartition.get(i).joinWith(rightPartition.get(j));
                         j++;
                         outBatch.add(outTuple);
