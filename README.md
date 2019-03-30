@@ -27,9 +27,9 @@ This repository presents our approach to this project. We are a team of 3 underg
 	- For `Import Layout`: follow the order of `import static all other imports`, `<blank line>`, `import java.*`, `<blank line>`, `import javax.*`, `<blank line>`, `import org.*`, `<blank line>`, `import com.*`, `<blank line>`, `import all other imports`.
 - Select `Import Project` from the `CS3223` folder you have just cloned to create the project:
 	- Use `Create project from existing sources` option;
-	- Go to `Project Structure` > `Libraries`, add `Java` with `lib/CUP` and `lib/JLEX`.
+	- Go to `Project Structure` > `Libraries`, add `Java` with `lib/CUP`, `lib/JLEX`, `lib/hamcrest-core-1.3.jar` and `lib/junit-4.13-beta-2.jar`.
 	- Go to `Project Structure` > `Modules`:
-		- Mark `src` folder as `Sources`;
+		- Mark `src` and `testcases` folder as `Sources`;
 		- Mark `test` folder as `Tests`;
 		- Mark `classes` folder and `out` folder (if exists) as `Excluded`.
 - Run `build.bat` (Windows) or `build.sh` (macOS or Linux) to build the project.
