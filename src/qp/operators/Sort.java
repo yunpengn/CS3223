@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.PriorityQueue;
+import java.util.UUID;
 import java.util.Vector;
 
 import qp.utils.Attribute;
@@ -20,6 +21,8 @@ import qp.utils.TupleInRun;
 public class Sort extends Operator {
     // The base operator (i.e., the unsorted relation).
     private final Operator base;
+    // A random UUID to avoid conflicts between different instances of Sort operators.
+    private final String uuid = UUID.randomUUID().toString();
     // The number of buffer pages available.
     private final int numOfBuffers;
     // The index of the attribute to sort based on.
@@ -288,7 +291,7 @@ public class Sort extends Operator {
      * @param runID is the ID of the sorted run.
      */
     private String getSortedRunFileName(int passID, int runID) {
-        return "Sort-run-" + passID + "-" + runID;
+        return "Sort-run-" + uuid + "-" + passID + "-" + runID;
     }
 
     /**
