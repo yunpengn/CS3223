@@ -177,6 +177,8 @@ public class Sort extends Operator {
     private void mergeRunsBetween(int startRunID, int endRunID, int passID, int outID) throws IOException, ClassNotFoundException {
         // Each input sorted run has 1 buffer page.
         Batch[] inBatches = new Batch[endRunID - startRunID];
+        // Records whether a certain input sorted run has reached its end-of-stream.
+        boolean[] inEos = new boolean[endRunID - startRunID];
         // Each input sorted run has one stream to read from.
         ObjectInputStream[] inStreams = new ObjectInputStream[endRunID - startRunID];
         for (int i = startRunID; i < endRunID; i++) {
@@ -185,11 +187,16 @@ public class Sort extends Operator {
             inStreams[i - startRunID] = inStream;
 
             // Fills in the data from an input run.
-            try {
-                inBatches[i - startRunID] = readInputBatch(inStream);
-            } catch (EOFException eof) {
-                inBatches[i - startRunID] = null;
+            Batch inBatch = new Batch(batchSize);
+            while (!inBatch.isFull()) {
+                try {
+                    Tuple data = (Tuple) inStream.readObject();
+                    inBatch.add(data);
+                } catch (EOFException eof) {
+                    break;
+                }
             }
+            inBatches[i - startRunID] = inBatch;
         }
 
         // A min-heap used later for k-way merge (representing the 1 page used for output buffer).
@@ -201,7 +208,8 @@ public class Sort extends Operator {
         // Inserts the 1st element (i.e., the smallest element) from each input buffer into the output heap.
         for (int i = 0; i < endRunID - startRunID; i++) {
             Batch inBatch = inBatches[i];
-            if (inBatch == null) {
+            if (inBatch == null || inBatch.isEmpty()) {
+                inEos[i] = true;
                 continue;
             }
             Tuple current = inBatch.elementAt(0);
@@ -219,18 +227,25 @@ public class Sort extends Operator {
             int nextIndex = outTuple.tupleID + 1;
             // Reads in the next page from the same input stream if that input buffer has been exhausted.
             if (nextIndex == batchSize) {
-                try {
-                    inBatches[nextBatchID] = readInputBatch(inStreams[nextBatchID]);
-                } catch (EOFException eof) {
-                    inBatches[nextBatchID] = null;
+                Batch inBatch = new Batch(batchSize);
+                while (!inBatch.isFull()) {
+                    try {
+                        Tuple data = (Tuple) inStreams[nextBatchID].readObject();
+                        inBatch.add(data);
+                    } catch (EOFException eof) {
+                        break;
+                    }
                 }
+                inBatches[nextBatchID] = inBatch;
+
                 // Resets the index for that input buffer to be 0.
                 nextIndex = 0;
             }
 
             // Inserts the next element into the output heap if that input buffer is not empty.
             Batch inBatch = inBatches[nextBatchID];
-            if (inBatch == null) {
+            if (inBatch == null || inBatch.size() <= nextIndex) {
+                inEos[nextBatchID] = true;
                 continue;
             }
             Tuple nextTuple = inBatch.elementAt(nextIndex);
@@ -242,23 +257,6 @@ public class Sort extends Operator {
             inStream.close();
         }
         outStream.close();
-    }
-
-    /**
-     * Reads in a batch of tuples to simulate reading a page from disk.
-     *
-     * @param stream is the input stream to read from.
-     * @return an {@link Batch} read from the input stream.
-     * @throws IOException for any of the usual I/O related exceptions.
-     * @throws ClassNotFoundException when the input content is serialized as a class that cannot be found.
-     */
-    private Batch readInputBatch(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-        Batch inBatch = new Batch(batchSize);
-        while (!inBatch.isFull()) {
-            Tuple data = (Tuple) stream.readObject();
-            inBatch.add(data);
-        }
-        return inBatch;
     }
 
     /**

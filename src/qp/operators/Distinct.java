@@ -38,12 +38,12 @@ public class Distinct extends Operator {
 
     @Override
     public Batch next() {
-        return base.next();
+        return sortedBase.next();
     }
 
     @Override
     public boolean close() {
-        return base.close();
+        return sortedBase.close();
     }
 
     /**
