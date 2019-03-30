@@ -267,19 +267,7 @@ public class Sort extends Operator {
      * @return an integer indicating the comparision result, compatible with the {@link java.util.Comparator} interface.
      */
     private int compareTuples(Tuple tuple1, Tuple tuple2) {
-        Object value1 = tuple1.dataAt(sortKeyIndex);
-        Object value2 = tuple2.dataAt(sortKeyIndex);
-
-        switch (sortKeyType) {
-            case Attribute.INT:
-                return Integer.compare((int) value1, (int) value2);
-            case Attribute.STRING:
-                return ((String) value1).compareTo((String) value2);
-            case Attribute.REAL:
-                return Float.compare((float) value1, (float) value2);
-            default:
-                return 0;
-        }
+        return Tuple.compareTuples(tuple1, tuple2, sortKeyIndex);
     }
 
     /**
