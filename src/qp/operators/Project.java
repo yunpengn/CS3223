@@ -27,10 +27,9 @@ public class Project extends Operator {
      *
      * @param base is the base operator
      * @param attrSet is the set of attributes
-     * @param type is the type of the operator (i.e., PROJECT)
      */
-    public Project(Operator base, Vector attrSet, int type) {
-        super(type);
+    public Project(Operator base, Vector attrSet) {
+        super(OpType.PROJECT);
         this.base = base;
         this.attrSet = attrSet;
     }
@@ -134,7 +133,7 @@ public class Project extends Operator {
             newAttrSet.add(((Attribute) attrSet.elementAt(i)).clone());
         }
 
-        Project newProject = new Project(newBase, newAttrSet, opType);
+        Project newProject = new Project(newBase, newAttrSet);
         Schema newSchema = newBase.getSchema().subSchema(newAttrSet);
         newProject.setSchema(newSchema);
         return newProject;

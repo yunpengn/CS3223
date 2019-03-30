@@ -15,7 +15,7 @@ public class BufferManager {
      * @param numOfJoin   is the total number of join operators.
      */
     public BufferManager(int numOfBuffer, int numOfJoin) {
-        buffersPerJoin = numOfBuffer / numOfJoin;
+        buffersPerJoin = numOfJoin == 0 ? numOfBuffer : numOfBuffer / numOfJoin;
     }
 
     /**

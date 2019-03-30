@@ -26,9 +26,7 @@ public class Sort extends Operator {
     // The number of buffer pages available.
     private final int numOfBuffers;
     // The index of the attribute to sort based on.
-    private final int sortKeyIndex;
-    // The data type of the attribute to sort based on.
-    private final int sortKeyType;
+    private final Vector<Integer> sortKeyIndices = new Vector<>();
     // The number of tuples per batch.
     private final int batchSize;
     // The input stream from which we read the sorted result.
@@ -42,15 +40,18 @@ public class Sort extends Operator {
      * @param base is the base operator.
      * @param numOfBuffers is the number of buffers (in pages) available.
      */
-    public Sort(Operator base, Attribute sortKey, int numOfBuffers) {
+    public Sort(Operator base, Vector attrList, int numOfBuffers) {
         super(OpType.SORT);
         this.schema = base.schema;
 
         this.base = base;
-        this.sortKeyIndex = schema.indexOf(sortKey);
-        this.sortKeyType = schema.getAttribute(sortKeyIndex).getType();
         this.numOfBuffers = numOfBuffers;
         this.batchSize = Batch.getPageSize() / schema.getTupleSize();
+
+        for (int i = 0; i < attrList.size(); i++) {
+            Attribute attribute = (Attribute) attrList.elementAt(i);
+            sortKeyIndices.add(schema.indexOf(attribute));
+        }
     }
 
     /**
@@ -135,7 +136,7 @@ public class Sort extends Operator {
         // Exits if there is no more than 1 run (which means there is no need to merge anymore).
         if (numOfRuns <= 1) {
             try {
-                String fileName = getSortedRunFileName(passID, numOfRuns - 1);
+                String fileName = getSortedRunFileName(passID - 1, numOfRuns - 1);
                 sortedStream = new ObjectInputStream(new FileInputStream(fileName));
             } catch (IOException e) {
                 System.err.printf("Sort: cannot create sortedStream due to %s", e.toString());
@@ -177,31 +178,39 @@ public class Sort extends Operator {
     private void mergeRunsBetween(int startRunID, int endRunID, int passID, int outID) throws IOException, ClassNotFoundException {
         // Each input sorted run has 1 buffer page.
         Batch[] inBatches = new Batch[endRunID - startRunID];
+        // Records whether a certain input sorted run has reached its end-of-stream.
+        boolean[] inEos = new boolean[endRunID - startRunID];
         // Each input sorted run has one stream to read from.
         ObjectInputStream[] inStreams = new ObjectInputStream[endRunID - startRunID];
         for (int i = startRunID; i < endRunID; i++) {
-            String inputFileName = getSortedRunFileName(passID, i);
+            String inputFileName = getSortedRunFileName(passID - 1, i);
             ObjectInputStream inStream = new ObjectInputStream(new FileInputStream(inputFileName));
             inStreams[i - startRunID] = inStream;
 
             // Fills in the data from an input run.
-            try {
-                inBatches[i - startRunID] = readInputBatch(inStream);
-            } catch (EOFException eof) {
-                inBatches[i - startRunID] = null;
+            Batch inBatch = new Batch(batchSize);
+            while (!inBatch.isFull()) {
+                try {
+                    Tuple data = (Tuple) inStream.readObject();
+                    inBatch.add(data);
+                } catch (EOFException eof) {
+                    break;
+                }
             }
+            inBatches[i - startRunID] = inBatch;
         }
 
         // A min-heap used later for k-way merge (representing the 1 page used for output buffer).
         PriorityQueue<TupleInRun> outHeap = new PriorityQueue<>(batchSize, (o1, o2) -> compareTuples(o1.tuple, o2.tuple));
         // The stream for output buffer.
-        String outputFileName = getSortedRunFileName(passID + 1, outID);
+        String outputFileName = getSortedRunFileName(passID, outID);
         ObjectOutputStream outStream = new ObjectOutputStream(new FileOutputStream(outputFileName));
 
         // Inserts the 1st element (i.e., the smallest element) from each input buffer into the output heap.
         for (int i = 0; i < endRunID - startRunID; i++) {
             Batch inBatch = inBatches[i];
-            if (inBatch == null) {
+            if (inBatch == null || inBatch.isEmpty()) {
+                inEos[i] = true;
                 continue;
             }
             Tuple current = inBatch.elementAt(0);
@@ -219,18 +228,25 @@ public class Sort extends Operator {
             int nextIndex = outTuple.tupleID + 1;
             // Reads in the next page from the same input stream if that input buffer has been exhausted.
             if (nextIndex == batchSize) {
-                try {
-                    inBatches[nextBatchID] = readInputBatch(inStreams[nextBatchID]);
-                } catch (EOFException eof) {
-                    inBatches[nextBatchID] = null;
+                Batch inBatch = new Batch(batchSize);
+                while (!inBatch.isFull()) {
+                    try {
+                        Tuple data = (Tuple) inStreams[nextBatchID].readObject();
+                        inBatch.add(data);
+                    } catch (EOFException eof) {
+                        break;
+                    }
                 }
+                inBatches[nextBatchID] = inBatch;
+
                 // Resets the index for that input buffer to be 0.
                 nextIndex = 0;
             }
 
             // Inserts the next element into the output heap if that input buffer is not empty.
             Batch inBatch = inBatches[nextBatchID];
-            if (inBatch == null) {
+            if (inBatch == null || inBatch.size() <= nextIndex) {
+                inEos[nextBatchID] = true;
                 continue;
             }
             Tuple nextTuple = inBatch.elementAt(nextIndex);
@@ -245,23 +261,6 @@ public class Sort extends Operator {
     }
 
     /**
-     * Reads in a batch of tuples to simulate reading a page from disk.
-     *
-     * @param stream is the input stream to read from.
-     * @return an {@link Batch} read from the input stream.
-     * @throws IOException for any of the usual I/O related exceptions.
-     * @throws ClassNotFoundException when the input content is serialized as a class that cannot be found.
-     */
-    private Batch readInputBatch(ObjectInputStream stream) throws IOException, ClassNotFoundException {
-        Batch inBatch = new Batch(batchSize);
-        while (!inBatch.isFull()) {
-            Tuple data = (Tuple) stream.readObject();
-            inBatch.add(data);
-        }
-        return inBatch;
-    }
-
-    /**
      * Compares two tuples based on the sort attribute.
      *
      * @param tuple1 is the first tuple.
@@ -269,19 +268,13 @@ public class Sort extends Operator {
      * @return an integer indicating the comparision result, compatible with the {@link java.util.Comparator} interface.
      */
     private int compareTuples(Tuple tuple1, Tuple tuple2) {
-        Object value1 = tuple1.dataAt(sortKeyIndex);
-        Object value2 = tuple2.dataAt(sortKeyIndex);
-
-        switch (sortKeyType) {
-            case Attribute.INT:
-                return Integer.compare((int) value1, (int) value2);
-            case Attribute.STRING:
-                return ((String) value1).compareTo((String) value2);
-            case Attribute.REAL:
-                return Float.compare((float) value1, (float) value2);
-            default:
-                return 0;
+        for (int sortKeyIndex: sortKeyIndices) {
+            int result = Tuple.compareTuples(tuple1, tuple2, sortKeyIndex);
+            if (result != 0) {
+                return result;
+            }
         }
+        return 0;
     }
 
     /**

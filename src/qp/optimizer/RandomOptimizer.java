@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import qp.operators.BlockNestedJoin;
 import qp.operators.Debug;
+import qp.operators.Distinct;
 import qp.operators.Join;
 import qp.operators.JoinType;
 import qp.operators.OpType;
@@ -417,11 +418,11 @@ public class RandomOptimizer {
      * @return the execution plan.
      */
     public static Operator makeExecPlan(Operator node) {
+        int numOfBuff = BufferManager.getBuffersPerJoin();
         if (node.getOpType() == OpType.JOIN) {
             Operator left = makeExecPlan(((Join) node).getLeft());
             Operator right = makeExecPlan(((Join) node).getRight());
             int joinType = ((Join) node).getJoinType();
-            int numOfBuff = BufferManager.getBuffersPerJoin();
 
             switch (joinType) {
                 case JoinType.PAGE_NESTED_JOIN:
@@ -431,7 +432,6 @@ public class RandomOptimizer {
                     pnj.setNumOfBuffer(numOfBuff);
                     return pnj;
 
-                // TODO: replace simple nested join with hash join
                 case JoinType.BLOCK_NESTED_JOIN:
                     BlockNestedJoin bnj = new BlockNestedJoin((Join) node);
                     bnj.setLeft(left);
@@ -467,6 +467,12 @@ public class RandomOptimizer {
         } else if (node.getOpType() == OpType.PROJECT) {
             Operator base = makeExecPlan(((Project) node).getBase());
             ((Project) node).setBase(base);
+            return node;
+        } else if (node.getOpType() == OpType.DISTINCT) {
+            Distinct operator = (Distinct) node;
+            operator.setNumOfBuffer(numOfBuff);
+            Operator base = makeExecPlan(operator.getBase());
+            operator.setBase(base);
             return node;
         } else {
             return node;
