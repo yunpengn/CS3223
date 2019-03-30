@@ -2,13 +2,13 @@ package qp.optimizer;
 
 import java.util.Vector;
 
+import qp.operators.BlockNestedJoin;
 import qp.operators.Debug;
 import qp.operators.Join;
 import qp.operators.JoinType;
-import qp.operators.BlockNestedJoin;
-import qp.operators.PageNestedJoin;
 import qp.operators.OpType;
 import qp.operators.Operator;
+import qp.operators.PageNestedJoin;
 import qp.operators.Project;
 import qp.operators.Select;
 import qp.utils.Attribute;
