@@ -26,13 +26,15 @@ import qp.utils.Schema;
 public class RandomInitialPlan {
     // The SQL query to create initial plan for.
     private final SQLQuery sqlQuery;
-    // Name to the Operator hashtable.
+    // Mapping from table name to operator.
     private Hashtable<String, Operator> tableNameToOperator;
     // Root of the query plan tree.
     private Operator root;
 
     /**
      * Constructor of RandomInitialPlan.
+     *
+     * @param sqlQuery is the SQL query to create initial plan for.
      */
     public RandomInitialPlan(SQLQuery sqlQuery) {
         this.sqlQuery = sqlQuery;
