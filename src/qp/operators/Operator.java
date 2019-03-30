@@ -49,15 +49,6 @@ public class Operator {
     }
 
     /**
-     * Setter for the operator type.
-     *
-     * @param type is type of this operator.
-     */
-    public void setOpType(int type) {
-        this.opType = type;
-    }
-
-    /**
      * Opens the operator.
      *
      * @return true when the operator is open successfully.
@@ -70,7 +61,7 @@ public class Operator {
      * @return the next page of tuples.
      */
     public Batch next() {
-        System.out.println("Operator:  ");
+        System.out.println("Operator: " + opType);
         return null;
     }
 
