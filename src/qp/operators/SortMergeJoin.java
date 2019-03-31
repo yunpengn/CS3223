@@ -20,6 +20,9 @@ public class SortMergeJoin extends Join {
     // Index of the join attribute in right table.
     private int rightIndex;
 
+    // Type of the join attribute.
+    private int attrType;
+
     // Cursor for left side buffer.
     private int leftCursor;
     // Cursor for right side buffer.
@@ -69,6 +72,9 @@ public class SortMergeJoin extends Join {
         Attribute rightAttr = (Attribute) con.getRight();
         leftIndex = left.getSchema().indexOf(leftAttr);
         rightIndex = right.getSchema().indexOf(rightAttr);
+
+        // Gets the type of the join attribute.
+        attrType = left.getSchema().typeOf(leftAttr);
 
         // Initializes the cursors of input buffers for both sides.
         leftCursor = 0;
@@ -137,7 +143,7 @@ public class SortMergeJoin extends Join {
             while (leftCursor < leftBatch.size() && rightCursor < rightBatch.size()) {
                 Tuple leftTuple = leftBatch.elementAt(leftCursor);
                 Tuple rightTuple = rightBatch.elementAt(rightCursor);
-                int comparisionResult = Tuple.compareTuples(leftTuple, rightTuple, leftIndex, rightIndex);
+                int comparisionResult = compareTuples(leftTuple, rightTuple, leftIndex, rightIndex);
 
                 if (comparisionResult < 0) {
                     leftCursor++;
@@ -183,6 +189,29 @@ public class SortMergeJoin extends Join {
             }
         }
         return outBatch;
+    }
+
+    /**
+     * Compares two tuples based on the join attribute.
+     *
+     * @param tuple1 is the first tuple.
+     * @param tuple2 is the second tuple.
+     * @return an integer indicating the comparision result, compatible with the {@link java.util.Comparator} interface.
+     */
+    private int compareTuples(Tuple tuple1, Tuple tuple2, int index1, int index2) {
+        Object value1 = tuple1.dataAt(index1);
+        Object value2 = tuple2.dataAt(index2);
+
+        switch (attrType) {
+            case Attribute.INT:
+                return Integer.compare((int) value1, (int) value2);
+            case Attribute.STRING:
+                return ((String) value1).compareTo((String) value2);
+            case Attribute.REAL:
+                return Float.compare((float) value1, (float) value2);
+            default:
+                return 0;
+        }
     }
 
     /**

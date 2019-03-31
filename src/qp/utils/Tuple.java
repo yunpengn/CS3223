@@ -87,7 +87,7 @@ public class Tuple implements Serializable {
      * @param rightIndex is the index of the attribute from the right tuple.
      * @return the comparision result.
      */
-    public static int compareTuples(Tuple left, Tuple right, int leftIndex, int rightIndex) {
+    private static int compareTuples(Tuple left, Tuple right, int leftIndex, int rightIndex) {
         Object leftValue = left.dataAt(leftIndex);
         Object rightValue = right.dataAt(rightIndex);
 
