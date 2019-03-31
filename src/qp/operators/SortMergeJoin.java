@@ -197,7 +197,6 @@ public class SortMergeJoin extends Join {
         if (nextRightTuple == null) {
             nextRightTuple = readNextRightTuple();
             if (nextRightTuple == null) {
-                eosRight = true;
                 return partition;
             }
         }
@@ -208,7 +207,6 @@ public class SortMergeJoin extends Join {
 
             nextRightTuple = readNextRightTuple();
             if (nextRightTuple == null) {
-                eosRight = true;
                 break;
             }
             comparisionResult = compareTuples(partition.elementAt(0), nextRightTuple, rightIndex, rightIndex);
