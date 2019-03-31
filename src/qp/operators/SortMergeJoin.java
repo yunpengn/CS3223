@@ -95,10 +95,13 @@ public class SortMergeJoin extends Join {
         if (eosLeft || eosRight) {
             close();
             return null;
-        } else if (leftBatch == null) {
-            leftBatch = left.next();
-        } else if (rightBatch == null) {
-            rightBatch = right.next();
+        } else {
+            if (leftBatch == null) {
+                leftBatch = left.next();
+            }
+            if (rightBatch == null) {
+                rightBatch = right.next();
+            }
         }
 
         // The output buffer.
@@ -113,8 +116,7 @@ public class SortMergeJoin extends Join {
                 rightPartitionIndex++;
                 rightTuple = rightPartition.elementAt(rightPartitionIndex);
             } else {
-                // Moves the left cursor to the next tuple (and reads another batch if necessary).
-                leftCursor++;
+                // Reads in another batch if necessary.
                 if (leftBatch == null) {
                     eosLeft = true;
                     break;
@@ -158,6 +160,7 @@ public class SortMergeJoin extends Join {
             } else if (compareTuples(leftTuple, rightTuple) == 0) {
                 outBatch.add(leftTuple.joinWith(rightTuple));
             }
+            leftCursor++;
         }
 
         return outBatch;
@@ -200,8 +203,7 @@ public class SortMergeJoin extends Join {
      * @return the next tuple if available; null otherwise.
      */
     private Tuple readNextRightTuple() {
-        // Moves the right cursor to the next tuple (and reads another batch if necessary).
-        rightCursor++;
+        // Reads another batch if necessary.
         if (rightBatch == null) {
             return null;
         } else if (rightCursor == rightBatch.size()) {
@@ -215,7 +217,9 @@ public class SortMergeJoin extends Join {
         }
 
         // Reads the next tuple.
-        return rightBatch.elementAt(rightCursor);
+        Tuple next = rightBatch.elementAt(rightCursor);
+        rightCursor++;
+        return next;
     }
 
     /**
