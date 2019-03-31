@@ -116,26 +116,13 @@ public class SortMergeJoin extends Join {
                 rightPartitionIndex++;
                 rightTuple = rightPartition.elementAt(rightPartitionIndex);
             } else {
-                // Reads in another batch if necessary.
-                if (leftBatch == null) {
-                    eosLeft = true;
-                    break;
-                } else if (leftCursor == leftBatch.size()) {
-                    leftBatch = left.next();
-                    leftCursor = 0;
-                }
-
-                // Checks whether the left batch still has tuples left.
-                if (leftBatch == null || leftBatch.size() <= leftCursor) {
+                Tuple nextLeftTuple = readNextLeftTuple();
+                if (nextLeftTuple == null) {
                     eosLeft = true;
                     break;
                 }
-
-                // Reads in the next tuple from left batch.
-                Tuple nextLeftTuple = leftBatch.elementAt(leftCursor);
                 int comparisionResult = leftTuple == null ? -1 : compareTuples(leftTuple, nextLeftTuple);
                 leftTuple = nextLeftTuple;
-                leftCursor++;
 
                 // Moves back to the beginning of right partition if the next left tuple remains the same value as the current one.
                 if (comparisionResult == 0) {
@@ -195,6 +182,33 @@ public class SortMergeJoin extends Join {
         }
 
         return partition;
+    }
+
+    /**
+     * Reads the next tuple from left input batch.
+     *
+     * @return the next tuple if available; null otherwise.
+     */
+    private Tuple readNextLeftTuple() {
+        // Reads in another batch if necessary.
+        if (leftBatch == null) {
+            eosLeft = true;
+            return null;
+        } else if (leftCursor == leftBatch.size()) {
+            leftBatch = left.next();
+            leftCursor = 0;
+        }
+
+        // Checks whether the left batch still has tuples left.
+        if (leftBatch == null || leftBatch.size() <= leftCursor) {
+            eosLeft = true;
+            return null;
+        }
+
+        // Reads in the next tuple from left batch.
+        Tuple nextLeftTuple = leftBatch.elementAt(leftCursor);
+        leftCursor++;
+        return nextLeftTuple;
     }
 
     /**
