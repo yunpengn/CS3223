@@ -135,6 +135,7 @@ public class SortMergeJoin extends Join {
                 Tuple nextLeftTuple = leftBatch.elementAt(leftCursor);
                 int comparisionResult = leftTuple == null ? -1 : compareTuples(leftTuple, nextLeftTuple);
                 leftTuple = nextLeftTuple;
+                leftCursor++;
 
                 // Moves back to the beginning of right partition if the next left tuple remains the same value as the current one.
                 if (comparisionResult == 0) {
@@ -160,7 +161,6 @@ public class SortMergeJoin extends Join {
             } else if (compareTuples(leftTuple, rightTuple) == 0) {
                 outBatch.add(leftTuple.joinWith(rightTuple));
             }
-            leftCursor++;
         }
 
         return outBatch;
