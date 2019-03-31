@@ -10,34 +10,39 @@ public class SortMergeJoin extends Join {
     // The number of tuples per output batch.
     private int batchSize;
 
-    // The buffer for the left input stream.
-    private Batch leftBatch;
-    // The buffer for the right input stream.
-    private Batch rightBatch;
-    // The output buffer.
-    private Batch outBatch;
-
     // Index of the join attribute in left table.
     private int leftIndex;
     // Index of the join attribute in right table.
     private int rightIndex;
-
     // Type of the join attribute.
     private int attrType;
 
-    // Cursor for left side buffer.
-    private int leftCursor;
-    // Cursor for right side buffer.
-    private int rightCursor;
+    // The buffer for the left input stream.
+    private Batch leftBatch;
+    // The buffer for the right input stream.
+    private Batch rightBatch;
 
-    // Cursor for left & right partition.
-    private int i, j;
-    private Vector<Tuple> leftPartition, rightPartition;
+    // The tuple that is currently being processed from left input batch.
+    private Tuple leftTuple = null;
+    // The tuple that is currently being processed from right input batch.
+    private Tuple rightTuple = null;
+
+    // Cursor for left side buffer.
+    private int leftCursor = 0;
+    // Cursor for right side buffer.
+    private int rightCursor = 0;
+
+    // The right partition that is currently being joined in.
+    private Vector<Tuple> rightPartition = new Vector<>();
+    // The index of the tuple that is currently being processed in the current right partition (0-based).
+    private int rightPartitionIndex = 0;
+    // The next right tuple (i.e., the first element of the next right partition).
+    private Tuple nextRightTuple = null;
 
     // Whether end of stream is reached for the left table.
-    private boolean eosLeft;
+    private boolean eosLeft = false;
     // Whether end of stream is reached for the right table.
-    private boolean eosRight;
+    private boolean eosRight = false;
 
     /**
      * Instantiates a new join operator using block-based nested loop algorithm.
@@ -78,17 +83,6 @@ public class SortMergeJoin extends Join {
         // Gets the type of the join attribute.
         attrType = left.getSchema().typeOf(leftAttr);
 
-        // Initializes the cursors of input buffers for both sides.
-        leftCursor = 0;
-        rightCursor = 0;
-        eosLeft = false;
-        eosRight = false;
-
-        i = 0;
-        j = 0;
-        leftPartition = new Vector<>();
-        rightPartition = new Vector<>();
-
         return super.open();
     }
 
@@ -99,95 +93,178 @@ public class SortMergeJoin extends Join {
      */
     @Override
     public Batch next() {
-        // Returns empty if the left table reaches end-of-stream.
+        // Returns empty if either left or right table reaches end-of-stream.
         if (eosLeft || eosRight) {
             close();
             return null;
         }
 
-        outBatch = new Batch(batchSize);
-        while (!outBatch.isFull()) {
-            // Joins tuples in the partition if partition is not empty.
-            if (leftPartition.size() != 0 && rightPartition.size() != 0) {
-                for (; i < leftPartition.size(); i++) {
-                    for (; j < rightPartition.size(); ) {
-                        Tuple outTuple = leftPartition.get(i).joinWith(rightPartition.get(j));
-                        j++;
-                        outBatch.add(outTuple);
-                        if (outBatch.isFull()) {
-                            return outBatch;
-                        }
-                    }
-                }
+        // To handle the 1st run.
+        if (leftBatch == null) {
+            leftBatch = left.next();
+            if (leftBatch == null) {
+                eosLeft = true;
+                return null;
             }
-            leftPartition.removeAllElements();
-            rightPartition.removeAllElements();
-            i = 0;
-            j = 0;
-
-            if (leftCursor == 0) {
-                leftBatch = left.next();
-                if (leftBatch == null) {
-                    eosLeft = true;
-                    return outBatch;
-                }
-            }
-
-            if (rightCursor == 0) {
-                rightBatch = right.next();
-                if (rightBatch == null) {
-                    eosRight = true;
-                    return outBatch;
-                }
-            }
-
-            while (leftCursor < leftBatch.size() && rightCursor < rightBatch.size()) {
-                Tuple leftTuple = leftBatch.elementAt(leftCursor);
-                Tuple rightTuple = rightBatch.elementAt(rightCursor);
-                if (compareTuples(leftTuple, rightTuple, leftIndex, rightIndex) < 0) {
-                    leftCursor++;
-                } else if (compareTuples(leftTuple, rightTuple, leftIndex, rightIndex) > 0) {
-                    rightCursor++;
-                } else {
-                    Object value = leftTuple.dataAt(leftIndex);
-
-                    do {
-                        leftPartition.add(leftTuple);
-                        leftCursor++;
-                        if (leftCursor == leftBatch.size()) {
-                            leftCursor = 0;
-                            leftBatch = left.next();
-                            if (leftBatch == null) {
-                                break;
-                            }
-                        }
-                        leftTuple = leftBatch.elementAt(leftCursor);
-                    } while (leftTuple.dataAt(leftIndex).equals(value));
-
-                    do {
-                        rightPartition.add(rightTuple);
-                        rightCursor++;
-                        if (rightCursor == rightBatch.size()) {
-                            rightCursor = 0;
-                            rightBatch = right.next();
-                            if (rightBatch == null) {
-                                break;
-                            }
-                        }
-                        rightTuple = rightBatch.elementAt(rightCursor);
-                    } while (rightTuple.dataAt(rightIndex).equals(value));
-
-                    break;
-                }
-            }
-            if (leftBatch != null && leftCursor == leftBatch.size()) {
-                leftCursor = 0;
-            }
-            if (rightBatch != null && rightCursor == rightBatch.size()) {
-                rightCursor = 0;
+            leftTuple = readNextLeftTuple();
+            if (leftTuple == null) {
+                eosLeft = true;
+                return null;
             }
         }
+        if (rightBatch == null) {
+            rightBatch = right.next();
+            if (rightBatch == null) {
+                eosRight = true;
+                return null;
+            }
+            rightPartition = createNextRightPartition();
+            if (rightPartition.isEmpty()) {
+                eosRight = true;
+                return null;
+            }
+            rightPartitionIndex = 0;
+            rightTuple = rightPartition.elementAt(rightPartitionIndex);
+        }
+
+        // The output buffer.
+        Batch outBatch = new Batch(batchSize);
+
+        while (!outBatch.isFull()) {
+            int comparisionResult = compareTuples(leftTuple, rightTuple, leftIndex, rightIndex);
+            if (comparisionResult == 0) {
+                outBatch.add(leftTuple.joinWith(rightTuple));
+
+                // Left tuple remains unchanged if it has not attempted to match with all tuples in the current right partition.
+                if (rightPartitionIndex < rightPartition.size() - 1) {
+                    rightPartitionIndex++;
+                    rightTuple = rightPartition.elementAt(rightPartitionIndex);
+                } else {
+                    Tuple nextLeftTuple = readNextLeftTuple();
+                    if (nextLeftTuple == null) {
+                        eosLeft = true;
+                        break;
+                    }
+                    comparisionResult = compareTuples(leftTuple, nextLeftTuple, leftIndex, leftIndex);
+                    leftTuple = nextLeftTuple;
+
+                    // Moves back to the beginning of right partition if the next left tuple remains the same value as the current one.
+                    if (comparisionResult == 0) {
+                        rightPartitionIndex = 0;
+                        rightTuple = rightPartition.elementAt(0);
+                    } else {
+                        // Proceeds and creates a new right partition otherwise.
+                        rightPartition = createNextRightPartition();
+                        if (rightPartition.isEmpty()) {
+                            eosRight = true;
+                            break;
+                        }
+
+                        // Updates the right tuple.
+                        rightPartitionIndex = 0;
+                        rightTuple = rightPartition.elementAt(rightPartitionIndex);
+                    }
+                }
+            } else if (comparisionResult < 0) {
+                leftTuple = readNextLeftTuple();
+                if (leftTuple == null) {
+                    eosLeft = true;
+                    break;
+                }
+            } else {
+                rightPartition = createNextRightPartition();
+                if (rightPartition.isEmpty()) {
+                    eosRight = true;
+                    break;
+                }
+
+                rightPartitionIndex = 0;
+                rightTuple = rightPartition.elementAt(rightPartitionIndex);
+            }
+        }
+
         return outBatch;
+    }
+
+    /**
+     * Creates the next partition from the right input batch based on the current right cursor value.
+     *
+     * @return a vector containing all tuples in the next right partition.
+     */
+    private Vector<Tuple> createNextRightPartition() {
+        Vector<Tuple> partition = new Vector<>();
+        int comparisionResult = 0;
+        if (nextRightTuple == null) {
+            nextRightTuple = readNextRightTuple();
+            if (nextRightTuple == null) {
+                return partition;
+            }
+        }
+
+        // Continues until the next tuple carries a different value.
+        while (comparisionResult == 0) {
+            partition.add(nextRightTuple);
+
+            nextRightTuple = readNextRightTuple();
+            if (nextRightTuple == null) {
+                break;
+            }
+            comparisionResult = compareTuples(partition.elementAt(0), nextRightTuple, rightIndex, rightIndex);
+        }
+
+        return partition;
+    }
+
+    /**
+     * Reads the next tuple from left input batch.
+     *
+     * @return the next tuple if available; null otherwise.
+     */
+    private Tuple readNextLeftTuple() {
+        // Reads in another batch if necessary.
+        if (leftBatch == null) {
+            eosLeft = true;
+            return null;
+        } else if (leftCursor == leftBatch.size()) {
+            leftBatch = left.next();
+            leftCursor = 0;
+        }
+
+        // Checks whether the left batch still has tuples left.
+        if (leftBatch == null || leftBatch.size() <= leftCursor) {
+            eosLeft = true;
+            return null;
+        }
+
+        // Reads in the next tuple from left batch.
+        Tuple nextLeftTuple = leftBatch.elementAt(leftCursor);
+        leftCursor++;
+        return nextLeftTuple;
+    }
+
+    /**
+     * Reads the next tuple from right input batch.
+     *
+     * @return the next tuple if available; null otherwise.
+     */
+    private Tuple readNextRightTuple() {
+        // Reads another batch if necessary.
+        if (rightBatch == null) {
+            return null;
+        } else if (rightCursor == rightBatch.size()) {
+            rightBatch = right.next();
+            rightCursor = 0;
+        }
+
+        // Checks whether the right batch still has tuples left.
+        if (rightBatch == null || rightBatch.size() <= rightCursor) {
+            return null;
+        }
+
+        // Reads the next tuple.
+        Tuple next = rightBatch.elementAt(rightCursor);
+        rightCursor++;
+        return next;
     }
 
     /**
@@ -220,6 +297,8 @@ public class SortMergeJoin extends Join {
      */
     @Override
     public boolean close() {
-        return true;
+        left.close();
+        right.close();
+        return super.close();
     }
 }

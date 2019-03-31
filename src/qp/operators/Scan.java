@@ -63,7 +63,7 @@ public class Scan extends Operator {
         try {
             in = new ObjectInputStream(new FileInputStream(fileName));
         } catch (Exception e) {
-            System.err.println(" Error reading " + fileName);
+            System.err.println(" Scan: error reading " + fileName);
             return false;
         }
         return true;
@@ -92,7 +92,7 @@ public class Scan extends Operator {
                 eos = true;
                 return outBatch;
             } catch (IOException e) {
-                System.err.println("Scan: error reading " + fileName);
+                System.err.printf("Scan: error reading %s due to %s\n", fileName, e.toString());
                 System.exit(1);
             }
         }
