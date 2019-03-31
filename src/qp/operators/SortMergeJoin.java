@@ -22,9 +22,6 @@ public class SortMergeJoin extends Join {
     // Index of the join attribute in right table.
     private int rightIndex;
 
-    // Type of the join attribute.
-    private int attrType;
-
     // Cursor for left side buffer.
     private int leftCursor;
     // Cursor for right side buffer.
@@ -74,9 +71,6 @@ public class SortMergeJoin extends Join {
         Attribute rightAttr = (Attribute) con.getRight();
         leftIndex = left.getSchema().indexOf(leftAttr);
         rightIndex = right.getSchema().indexOf(rightAttr);
-
-        // Gets the type of the join attribute.
-        attrType = left.getSchema().typeOf(leftAttr);
 
         // Initializes the cursors of input buffers for both sides.
         leftCursor = 0;
@@ -199,6 +193,8 @@ public class SortMergeJoin extends Join {
      */
     @Override
     public boolean close() {
-        return left.close() && right.close();
+        left.close();
+        right.close();
+        return super.close();
     }
 }
