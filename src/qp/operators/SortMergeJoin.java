@@ -14,8 +14,6 @@ public class SortMergeJoin extends Join {
     private Batch leftBatch;
     // The buffer for the right input stream.
     private Batch rightBatch;
-    // The output buffer.
-    private Batch outBatch;
 
     // Index of the join attribute in left table.
     private int leftIndex;
@@ -99,7 +97,8 @@ public class SortMergeJoin extends Join {
             return null;
         }
 
-        outBatch = new Batch(batchSize);
+        // The output buffer.
+        Batch outBatch = new Batch(batchSize);
         while (!outBatch.isFull()) {
             // Joins tuples in the partition if partition is not empty.
             if (leftPartition.size() != 0 && rightPartition.size() != 0) {
