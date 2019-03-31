@@ -97,34 +97,34 @@ public class SortMergeJoin extends Join {
         if (eosLeft || eosRight) {
             close();
             return null;
-        } else {
-            // To handle the 1st run.
+        }
+
+        // To handle the 1st run.
+        if (leftBatch == null) {
+            leftBatch = left.next();
             if (leftBatch == null) {
-                leftBatch = left.next();
-                if (leftBatch == null) {
-                    eosLeft = true;
-                    return null;
-                }
-                leftTuple = readNextLeftTuple();
-                if (leftTuple == null) {
-                    eosLeft = true;
-                    return null;
-                }
+                eosLeft = true;
+                return null;
             }
+            leftTuple = readNextLeftTuple();
+            if (leftTuple == null) {
+                eosLeft = true;
+                return null;
+            }
+        }
+        if (rightBatch == null) {
+            rightBatch = right.next();
             if (rightBatch == null) {
-                rightBatch = right.next();
-                if (rightBatch == null) {
-                    eosRight = true;
-                    return null;
-                }
-                rightPartition = createNextRightPartition();
-                if (rightPartition.isEmpty()) {
-                    eosRight = true;
-                    return null;
-                }
-                rightPartitionIndex = 0;
-                rightTuple = rightPartition.elementAt(rightPartitionIndex);
+                eosRight = true;
+                return null;
             }
+            rightPartition = createNextRightPartition();
+            if (rightPartition.isEmpty()) {
+                eosRight = true;
+                return null;
+            }
+            rightPartitionIndex = 0;
+            rightTuple = rightPartition.elementAt(rightPartitionIndex);
         }
 
         // The output buffer.
