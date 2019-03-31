@@ -220,6 +220,6 @@ public class SortMergeJoin extends Join {
      */
     @Override
     public boolean close() {
-        return true;
+        return left.close() && right.close();
     }
 }
