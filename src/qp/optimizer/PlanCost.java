@@ -151,11 +151,11 @@ public class PlanCost {
 
         switch (joinType) {
             case JoinType.PAGE_NESTED_JOIN:
-                joinCost = leftPages * rightPages;
+                joinCost = leftPages * rightPages * 10;
                 break;
             case JoinType.BLOCK_NESTED_JOIN:
                 int leftBlocks = (int) Math.ceil(leftPages / (numOfBuffer - 2));
-                joinCost = leftBlocks * rightPages;
+                joinCost = leftBlocks * rightPages * 10;
                 break;
             case JoinType.SORT_MERGE_JOIN:
                 int leftPasses = (int) Math.ceil(Math.log(Math.ceil(leftPages / numOfBuffer)) / Math.log(numOfBuffer - 1)) + 1;

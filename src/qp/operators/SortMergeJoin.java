@@ -10,32 +10,37 @@ public class SortMergeJoin extends Join {
     // The number of tuples per output batch.
     private int batchSize;
 
+    // Index of the join attribute in left table.
+    private int leftIndex;
+    // Index of the join attribute in right table.
+    private int rightIndex;
+    // Type of the join attribute.
+    private int attrType;
+
     // The buffer for the left input stream.
     private Batch leftBatch;
     // The buffer for the right input stream.
     private Batch rightBatch;
 
-    // Index of the join attribute in left table.
-    private int leftIndex;
-    // Index of the join attribute in right table.
-    private int rightIndex;
-
-    // Type of the join attribute.
-    private int attrType;
+    // The tuple that is currently being processed from left input batch.
+    private Tuple leftTuple = null;
 
     // Cursor for left side buffer.
-    private int leftCursor;
+    private int leftCursor = 0;
     // Cursor for right side buffer.
-    private int rightCursor;
+    private int rightCursor = 0;
 
-    // Cursor for left & right partition.
-    private int i, j;
-    private Vector<Tuple> leftPartition, rightPartition;
+    // The right partition that is currently being joined in.
+    private Vector<Tuple> rightPartition = new Vector<>();
+    // The index of the tuple that is currently being processed in the current right partition (0-based).
+    private int rightPartitionIndex = 0;
+    // The next right tuple (i.e., the first element of the next right partition).
+    private Tuple nextRightTuple = null;
 
     // Whether end of stream is reached for the left table.
-    private boolean eosLeft;
+    private boolean eosLeft = false;
     // Whether end of stream is reached for the right table.
-    private boolean eosRight;
+    private boolean eosRight = false;
 
     /**
      * Instantiates a new join operator using block-based nested loop algorithm.
@@ -76,17 +81,6 @@ public class SortMergeJoin extends Join {
         // Gets the type of the join attribute.
         attrType = left.getSchema().typeOf(leftAttr);
 
-        // Initializes the cursors of input buffers for both sides.
-        leftCursor = 0;
-        rightCursor = 0;
-        eosLeft = false;
-        eosRight = false;
-
-        i = 0;
-        j = 0;
-        leftPartition = new Vector<>();
-        rightPartition = new Vector<>();
-
         return super.open();
     }
 
@@ -97,98 +91,131 @@ public class SortMergeJoin extends Join {
      */
     @Override
     public Batch next() {
-        // Returns empty if the left table reaches end-of-stream.
+        // Returns empty if either left or right table reaches end-of-stream.
         if (eosLeft || eosRight) {
             close();
             return null;
+        } else if (leftBatch == null) {
+            leftBatch = left.next();
+        } else if (rightBatch == null) {
+            rightBatch = right.next();
         }
 
         // The output buffer.
         Batch outBatch = new Batch(batchSize);
-        while (!outBatch.isFull()) {
-            // Joins tuples in the partition if partition is not empty.
-            if (leftPartition.size() != 0 && rightPartition.size() != 0) {
-                for (; i < leftPartition.size(); i++) {
-                    for (; j < rightPartition.size(); ) {
-                        Tuple outTuple = leftPartition.get(i).joinWith(rightPartition.get(j));
-                        j++;
-                        outBatch.add(outTuple);
-                        if (outBatch.isFull()) {
-                            return outBatch;
-                        }
-                    }
-                }
-            }
-            leftPartition.removeAllElements();
-            rightPartition.removeAllElements();
-            i = 0;
-            j = 0;
 
-            if (leftCursor == 0) {
-                leftBatch = left.next();
+        while (!outBatch.isFull()) {
+            // The tuple that is currently being processed from right input batch.
+            Tuple rightTuple;
+
+            // Left tuple remains unchanged if it has not attempted to match with all tuples in the current right partition.
+            if (rightPartitionIndex < rightPartition.size() - 1) {
+                rightPartitionIndex++;
+                rightTuple = rightPartition.elementAt(rightPartitionIndex);
+            } else {
+                // Moves the left cursor to the next tuple (and reads another batch if necessary).
+                leftCursor++;
                 if (leftBatch == null) {
                     eosLeft = true;
-                    return outBatch;
+                    break;
+                } else if (leftCursor == leftBatch.size()) {
+                    leftBatch = left.next();
+                    leftCursor = 0;
                 }
-            }
 
-            if (rightCursor == 0) {
-                rightBatch = right.next();
-                if (rightBatch == null) {
-                    eosRight = true;
-                    return outBatch;
-                }
-            }
-
-            while (leftCursor < leftBatch.size() && rightCursor < rightBatch.size()) {
-                Tuple leftTuple = leftBatch.elementAt(leftCursor);
-                Tuple rightTuple = rightBatch.elementAt(rightCursor);
-                int comparisionResult = compareTuples(leftTuple, rightTuple, leftIndex, rightIndex);
-
-                if (comparisionResult < 0) {
-                    leftCursor++;
-                } else if (comparisionResult > 0) {
-                    rightCursor++;
-                } else {
-                    Object value = leftTuple.dataAt(leftIndex);
-
-                    do {
-                        leftPartition.add(leftTuple);
-                        leftCursor++;
-                        if (leftCursor == leftBatch.size()) {
-                            leftCursor = 0;
-                            leftBatch = left.next();
-                            if (leftBatch == null) {
-                                break;
-                            }
-                        }
-                        leftTuple = leftBatch.elementAt(leftCursor);
-                    } while (leftTuple.dataAt(leftIndex).equals(value));
-
-                    do {
-                        rightPartition.add(rightTuple);
-                        rightCursor++;
-                        if (rightCursor == rightBatch.size()) {
-                            rightCursor = 0;
-                            rightBatch = right.next();
-                            if (rightBatch == null) {
-                                break;
-                            }
-                        }
-                        rightTuple = rightBatch.elementAt(rightCursor);
-                    } while (rightTuple.dataAt(rightIndex).equals(value));
-
+                // Checks whether the left batch still has tuples left.
+                if (leftBatch == null || leftBatch.size() <= leftCursor) {
+                    eosLeft = true;
                     break;
                 }
+
+                // Reads in the next tuple from left batch.
+                Tuple nextLeftTuple = leftBatch.elementAt(leftCursor);
+                int comparisionResult = leftTuple == null ? -1 : compareTuples(leftTuple, nextLeftTuple);
+                leftTuple = nextLeftTuple;
+
+                // Moves back to the beginning of right partition if the next left tuple remains the same value as the current one.
+                if (comparisionResult == 0) {
+                    rightPartitionIndex = 0;
+                    rightTuple = rightPartition.elementAt(0);
+                } else {
+                    // Proceeds and creates a new right partition otherwise.
+                    rightPartition = createNextRightPartition();
+                    if (rightPartition.isEmpty()) {
+                        eosRight = true;
+                        break;
+                    }
+
+                    // Updates the right tuple.
+                    rightPartitionIndex = 0;
+                    rightTuple = rightPartition.elementAt(rightPartitionIndex);
+                }
             }
-            if (leftBatch != null && leftCursor == leftBatch.size()) {
-                leftCursor = 0;
-            }
-            if (rightBatch != null && rightCursor == rightBatch.size()) {
-                rightCursor = 0;
+
+            // Checks whether the current left & right tuple matches and adds to output batch if so.
+            if (leftTuple == null || rightTuple == null) {
+                break;
+            } else if (compareTuples(leftTuple, rightTuple) == 0) {
+                outBatch.add(leftTuple.joinWith(rightTuple));
             }
         }
+
         return outBatch;
+    }
+
+    /**
+     * Creates the next partition from the right input batch based on the current right cursor value.
+     *
+     * @return a vector containing all tuples in the next right partition.
+     */
+    private Vector<Tuple> createNextRightPartition() {
+        Vector<Tuple> partition = new Vector<>();
+        int comparisionResult = 0;
+        if (nextRightTuple == null) {
+            nextRightTuple = readNextRightTuple();
+            if (nextRightTuple == null) {
+                eosRight = true;
+                return partition;
+            }
+        }
+
+        // Continues until the next tuple carries a different value.
+        while (comparisionResult == 0) {
+            partition.add(nextRightTuple);
+
+            nextRightTuple = readNextRightTuple();
+            if (nextRightTuple == null) {
+                eosRight = true;
+                break;
+            }
+            comparisionResult = compareTuples(partition.elementAt(0), nextRightTuple);
+        }
+
+        return partition;
+    }
+
+    /**
+     * Reads the next tuple from right input batch.
+     *
+     * @return the next tuple if available; null otherwise.
+     */
+    private Tuple readNextRightTuple() {
+        // Moves the right cursor to the next tuple (and reads another batch if necessary).
+        rightCursor++;
+        if (rightBatch == null) {
+            return null;
+        } else if (rightCursor == rightBatch.size()) {
+            rightBatch = right.next();
+            rightCursor = 0;
+        }
+
+        // Checks whether the right batch still has tuples left.
+        if (rightBatch == null || rightBatch.size() <= rightCursor) {
+            return null;
+        }
+
+        // Reads the next tuple.
+        return rightBatch.elementAt(rightCursor);
     }
 
     /**
@@ -198,9 +225,9 @@ public class SortMergeJoin extends Join {
      * @param tuple2 is the second tuple.
      * @return an integer indicating the comparision result, compatible with the {@link java.util.Comparator} interface.
      */
-    private int compareTuples(Tuple tuple1, Tuple tuple2, int index1, int index2) {
-        Object value1 = tuple1.dataAt(index1);
-        Object value2 = tuple2.dataAt(index2);
+    private int compareTuples(Tuple tuple1, Tuple tuple2) {
+        Object value1 = tuple1.dataAt(leftIndex);
+        Object value2 = tuple2.dataAt(rightIndex);
 
         switch (attrType) {
             case Attribute.INT:

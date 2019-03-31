@@ -10,6 +10,7 @@ classes/*.tbl
 
 # Query output files
 classes/*.out
+classes/*.expect
 
 # Log file
 *.log
