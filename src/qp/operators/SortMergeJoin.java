@@ -131,7 +131,7 @@ public class SortMergeJoin extends Join {
         Batch outBatch = new Batch(batchSize);
 
         while (!outBatch.isFull()) {
-            int comparisionResult = compareTuples(leftTuple, rightTuple);
+            int comparisionResult = compareTuples(leftTuple, rightTuple, leftIndex, rightIndex);
             if (comparisionResult == 0) {
                 outBatch.add(leftTuple.joinWith(rightTuple));
 
@@ -145,7 +145,7 @@ public class SortMergeJoin extends Join {
                         eosLeft = true;
                         break;
                     }
-                    comparisionResult = compareTuples(leftTuple, nextLeftTuple);
+                    comparisionResult = compareTuples(leftTuple, nextLeftTuple, leftIndex, leftIndex);
                     leftTuple = nextLeftTuple;
 
                     // Moves back to the beginning of right partition if the next left tuple remains the same value as the current one.
@@ -211,7 +211,7 @@ public class SortMergeJoin extends Join {
                 eosRight = true;
                 break;
             }
-            comparisionResult = compareTuples(partition.elementAt(0), nextRightTuple);
+            comparisionResult = compareTuples(partition.elementAt(0), nextRightTuple, rightIndex, rightIndex);
         }
 
         return partition;
@@ -276,9 +276,9 @@ public class SortMergeJoin extends Join {
      * @param tuple2 is the second tuple.
      * @return an integer indicating the comparision result, compatible with the {@link java.util.Comparator} interface.
      */
-    private int compareTuples(Tuple tuple1, Tuple tuple2) {
-        Object value1 = tuple1.dataAt(leftIndex);
-        Object value2 = tuple2.dataAt(rightIndex);
+    private int compareTuples(Tuple tuple1, Tuple tuple2, int index1, int index2) {
+        Object value1 = tuple1.dataAt(index1);
+        Object value2 = tuple2.dataAt(index2);
 
         switch (attrType) {
             case Attribute.INT:
