@@ -24,6 +24,8 @@ public class SortMergeJoin extends Join {
 
     // The tuple that is currently being processed from left input batch.
     private Tuple leftTuple = null;
+    // The tuple that is currently being processed from right input batch.
+    private Tuple rightTuple = null;
 
     // Cursor for left side buffer.
     private int leftCursor = 0;
@@ -96,11 +98,32 @@ public class SortMergeJoin extends Join {
             close();
             return null;
         } else {
+            // To handle the 1st run.
             if (leftBatch == null) {
                 leftBatch = left.next();
+                if (leftBatch == null) {
+                    eosLeft = true;
+                    return null;
+                }
+                leftTuple = readNextLeftTuple();
+                if (leftTuple == null) {
+                    eosLeft = true;
+                    return null;
+                }
             }
             if (rightBatch == null) {
                 rightBatch = right.next();
+                if (rightBatch == null) {
+                    eosRight = true;
+                    return null;
+                }
+                rightPartition = createNextRightPartition();
+                if (rightPartition.isEmpty()) {
+                    eosRight = true;
+                    return null;
+                }
+                rightPartitionIndex = 0;
+                rightTuple = rightPartition.elementAt(rightPartitionIndex);
             }
         }
 
@@ -108,45 +131,55 @@ public class SortMergeJoin extends Join {
         Batch outBatch = new Batch(batchSize);
 
         while (!outBatch.isFull()) {
-            // The tuple that is currently being processed from right input batch.
-            Tuple rightTuple;
+            int comparisionResult = compareTuples(leftTuple, rightTuple);
+            if (comparisionResult == 0) {
+                outBatch.add(leftTuple.joinWith(rightTuple));
 
-            // Left tuple remains unchanged if it has not attempted to match with all tuples in the current right partition.
-            if (rightPartitionIndex < rightPartition.size() - 1) {
-                rightPartitionIndex++;
-                rightTuple = rightPartition.elementAt(rightPartitionIndex);
-            } else {
-                Tuple nextLeftTuple = readNextLeftTuple();
-                if (nextLeftTuple == null) {
+                // Left tuple remains unchanged if it has not attempted to match with all tuples in the current right partition.
+                if (rightPartitionIndex < rightPartition.size() - 1) {
+                    rightPartitionIndex++;
+                    rightTuple = rightPartition.elementAt(rightPartitionIndex);
+                } else {
+                    Tuple nextLeftTuple = readNextLeftTuple();
+                    if (nextLeftTuple == null) {
+                        eosLeft = true;
+                        break;
+                    }
+                    comparisionResult = compareTuples(leftTuple, nextLeftTuple);
+                    leftTuple = nextLeftTuple;
+
+                    // Moves back to the beginning of right partition if the next left tuple remains the same value as the current one.
+                    if (comparisionResult == 0) {
+                        rightPartitionIndex = 0;
+                        rightTuple = rightPartition.elementAt(0);
+                    } else {
+                        // Proceeds and creates a new right partition otherwise.
+                        rightPartition = createNextRightPartition();
+                        if (rightPartition.isEmpty()) {
+                            eosRight = true;
+                            break;
+                        }
+
+                        // Updates the right tuple.
+                        rightPartitionIndex = 0;
+                        rightTuple = rightPartition.elementAt(rightPartitionIndex);
+                    }
+                }
+            } else if (comparisionResult < 0) {
+                leftTuple = readNextLeftTuple();
+                if (leftTuple == null) {
                     eosLeft = true;
                     break;
                 }
-                int comparisionResult = leftTuple == null ? -1 : compareTuples(leftTuple, nextLeftTuple);
-                leftTuple = nextLeftTuple;
-
-                // Moves back to the beginning of right partition if the next left tuple remains the same value as the current one.
-                if (comparisionResult == 0) {
-                    rightPartitionIndex = 0;
-                    rightTuple = rightPartition.elementAt(0);
-                } else {
-                    // Proceeds and creates a new right partition otherwise.
-                    rightPartition = createNextRightPartition();
-                    if (rightPartition.isEmpty()) {
-                        eosRight = true;
-                        break;
-                    }
-
-                    // Updates the right tuple.
-                    rightPartitionIndex = 0;
-                    rightTuple = rightPartition.elementAt(rightPartitionIndex);
+            } else {
+                rightPartition = createNextRightPartition();
+                if (rightPartition.isEmpty()) {
+                    eosRight = true;
+                    break;
                 }
-            }
 
-            // Checks whether the current left & right tuple matches and adds to output batch if so.
-            if (leftTuple == null || rightTuple == null) {
-                break;
-            } else if (compareTuples(leftTuple, rightTuple) == 0) {
-                outBatch.add(leftTuple.joinWith(rightTuple));
+                rightPartitionIndex = 0;
+                rightTuple = rightPartition.elementAt(rightPartitionIndex);
             }
         }
 
