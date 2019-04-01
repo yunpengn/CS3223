@@ -1,6 +1,5 @@
 package qp.optimizer;
 
-import qp.operators.Debug;
 import qp.operators.Operator;
 import qp.utils.SQLQuery;
 
@@ -27,87 +26,62 @@ public class RandomII extends RandomOptimizer {
         RandomInitialPlan rip = new RandomInitialPlan(sqlQuery);
         numOfJoin = rip.getNumJoins();
 
-        int minCost = Integer.MAX_VALUE;
+        // The final plan.
         Operator finalPlan = null;
+        int finalCost = Integer.MAX_VALUE;
 
-        // The number of times of random restart.
-        int numOfRestart = Math.max(2 * numOfJoin, 1);
-
-        // Randomly restarts the gradient descent until the maximum specified number
-        // of random restarts (numOfRestart) has satisfied.
-        for (int j = 0; j < numOfRestart; j++) {
+        // Randomly restarts the gradient descent algorithm for a specified number of times.
+        for (int j = 0; j < Math.max(2 * numOfJoin, 1); j++) {
             Operator initPlan = rip.prepareInitialPlan();
             Transformations.modifySchema(initPlan);
+            int initCost = printPlanCostInfo("Initial Plan", initPlan);
 
-            System.out.println("-----------initial Plan-------------");
-            Debug.PPrint(initPlan);
-
-            PlanCost pc = new PlanCost();
-            int initCost = pc.getCost(initPlan);
-            System.out.println(initCost);
-
+            // A flag to determine whether we have reached local minimum.
             boolean flag = true;
+
             // Just for initialization purpose.
+            Operator minNeighborPlan = initPlan;
             int minNeighborCost = initCost;
-            Operator minNeighbor = initPlan;
 
             if (numOfJoin != 0) {
-                // flag = false when local minimum is reached.
                 while (flag) {
                     System.out.println("---------------while--------");
 
                     Operator initPlanCopy = (Operator) initPlan.clone();
-                    minNeighbor = getNeighbor(initPlanCopy);
-
-                    System.out.println("--------------------------neighbor---------------");
-                    Debug.PPrint(minNeighbor);
-
-                    pc = new PlanCost();
-                    minNeighborCost = pc.getCost(minNeighbor);
-                    System.out.println("  " + minNeighborCost);
+                    minNeighborPlan = getNeighbor(initPlanCopy);
+                    minNeighborCost = printPlanCostInfo("Neighbor", minNeighborPlan);
 
                     // In this loop we consider from the possible neighbors (randomly selected)
                     // and take the minimum among for next step.
                     for (int i = 1; i < 2 * numOfJoin; i++) {
                         initPlanCopy = (Operator) initPlan.clone();
                         Operator neighbor = getNeighbor(initPlanCopy);
-
-                        System.out.println("------------------neighbor--------------");
-                        Debug.PPrint(neighbor);
-
-                        pc = new PlanCost();
-                        int neighborCost = pc.getCost(neighbor);
-                        System.out.println(neighborCost);
+                        int neighborCost = printPlanCostInfo("Neighbor", neighbor);
 
                         if (neighborCost < minNeighborCost) {
-                            minNeighbor = neighbor;
+                            minNeighborPlan = neighbor;
                             minNeighborCost = neighborCost;
                         }
                     }
                     if (minNeighborCost < initCost) {
-                        initPlan = minNeighbor;
+                        initPlan = minNeighborPlan;
                         initCost = minNeighborCost;
                     } else {
-                        minNeighbor = initPlan;
+                        minNeighborPlan = initPlan;
                         minNeighborCost = initCost;
 
                         // Reaches local minimum.
                         flag = false;
                     }
                 }
-                System.out.println("------------------local minimum--------------");
-                Debug.PPrint(minNeighbor);
-                System.out.println(" " + minNeighborCost);
+                printPlanCostInfo("Local Minimum", minNeighborPlan, minNeighborCost);
             }
-            if (minNeighborCost < minCost) {
-                minCost = minNeighborCost;
-                finalPlan = minNeighbor;
+            if (minNeighborCost < finalCost) {
+                finalCost = minNeighborCost;
+                finalPlan = minNeighborPlan;
             }
         }
-        System.out.println("\n\n\n");
-        System.out.println("---------------------------Final Plan----------------");
-        Debug.PPrint(finalPlan);
-        System.out.println("  " + minCost);
+        printPlanCostInfo("Final Plan", finalPlan, finalCost);
 
         return finalPlan;
     }

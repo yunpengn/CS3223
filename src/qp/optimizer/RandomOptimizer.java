@@ -157,4 +157,32 @@ public abstract class RandomOptimizer {
             return node;
         }
     }
+
+    /**
+     * Prints out the information about an execution plan and its cost.
+     *
+     * @param name is the name of this plan.
+     * @param plan is the execution plan.
+     * @return the cost of this execution plan.
+     */
+    int printPlanCostInfo(String name, Operator plan) {
+        PlanCost planCost = new PlanCost();
+        int cost = planCost.getCost(plan);
+
+        printPlanCostInfo(name, plan, cost);
+        return cost;
+    }
+
+    /**
+     * Prints out the information about an execution plan and its cost.
+     *
+     * @param name is the name of this plan.
+     * @param plan is the execution plan.
+     * @param cost is the cost of this execution plan.
+     */
+    void printPlanCostInfo(String name, Operator plan, int cost) {
+        System.out.println("\n---------------------------" + name + "---------------------------");
+        Debug.PPrint(plan);
+        System.out.println(" " + cost);
+    }
 }
