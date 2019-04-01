@@ -48,7 +48,7 @@ public class RandomSA extends RandomOptimizer {
             Operator currentPlan = getNeighbor(initPlanCopy);
             int currentCost = printPlanCostInfo("Neighbor", currentPlan);
 
-            if (currentCost < minCost || judge(temperature, currentCost, minCost)) {
+            if (currentCost <= minCost || judge(temperature, currentCost, minCost)) {
                 minPlan = currentPlan;
                 minCost = currentCost;
             }
