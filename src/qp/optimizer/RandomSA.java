@@ -43,7 +43,7 @@ public class RandomSA extends RandomOptimizer {
         }
 
         // Continues until the temperature has dropped below a certain threshold (i.e., frozen).
-        for (double temperature = numOfJoin * 2; temperature > END_TEMPERATURE; temperature *= ALPHA) {
+        for (double temperature = numOfJoin * 3; temperature > END_TEMPERATURE; temperature *= ALPHA) {
             Operator initPlan = rip.prepareInitialPlan();
             Transformations.modifySchema(minPlan);
             int initCost = printPlanCostInfo("Initial Plan", initPlan);
