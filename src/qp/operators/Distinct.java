@@ -2,8 +2,11 @@ package qp.operators;
 
 import java.util.Vector;
 
+import org.w3c.dom.Attr;
+
 import qp.utils.Attribute;
 import qp.utils.Batch;
+import qp.utils.Schema;
 import qp.utils.Tuple;
 
 /**
@@ -133,5 +136,20 @@ public class Distinct extends Operator {
      */
     public void setBase(Operator base) {
         this.base = base;
+    }
+
+    @Override
+    public Object clone() {
+        Operator newBase = (Operator) base.clone();
+        Vector<Attribute> newProjectList = new Vector<>();
+        for (int i = 0; i < projectList.size(); i++) {
+            Attribute attribute = (Attribute) ((Attribute) projectList.elementAt(i)).clone();
+            newProjectList.add(attribute);
+        }
+
+        Distinct newDistinct = new Distinct(base, newProjectList);
+        Schema newSchema = newBase.getSchema();
+        newDistinct.setSchema(newSchema);
+        return newDistinct;
     }
 }
