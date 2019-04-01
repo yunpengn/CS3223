@@ -46,12 +46,12 @@ public class RandomII extends RandomOptimizer {
             // A flag to determine whether we have reached local minimum.
             boolean flag = true;
 
-            // Just for initialization purpose.
-            Operator minNeighborPlan = initPlan;
-            int minNeighborCost = initCost;
-
             while (flag) {
+                // Just for initialization purpose.
+                Operator minNeighborPlan = initPlan;
+                int minNeighborCost = initCost;
                 System.out.println("---------------while---------------");
+
                 // In this loop we consider from the possible neighbors (randomly selected)
                 // and take the minimum among for next step.
                 for (int i = 0; i < 2 * numOfJoin; i++) {
@@ -69,22 +69,19 @@ public class RandomII extends RandomOptimizer {
                     initPlan = minNeighborPlan;
                     initCost = minNeighborCost;
                 } else {
-                    minNeighborPlan = initPlan;
-                    minNeighborCost = initCost;
-
                     // Reaches local minimum.
                     flag = false;
                 }
             }
 
-            printPlanCostInfo("Local Minimum", minNeighborPlan, minNeighborCost);
-            if (minNeighborCost < finalCost) {
-                finalCost = minNeighborCost;
-                finalPlan = minNeighborPlan;
+            printPlanCostInfo("Local Minimum", initPlan, initCost);
+            if (initCost < finalCost) {
+                finalPlan = initPlan;
+                finalCost = initCost;
             }
         }
-        printPlanCostInfo("Final Plan", finalPlan, finalCost);
 
+        printPlanCostInfo("Final Plan", finalPlan, finalCost);
         return finalPlan;
     }
 }
