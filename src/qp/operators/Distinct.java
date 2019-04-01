@@ -2,8 +2,6 @@ package qp.operators;
 
 import java.util.Vector;
 
-import org.w3c.dom.Attr;
-
 import qp.utils.Attribute;
 import qp.utils.Batch;
 import qp.utils.Schema;
