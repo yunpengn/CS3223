@@ -44,16 +44,18 @@ public class RandomSA extends RandomOptimizer {
         }
 
         // Continues until the temperature has dropped below a certain threshold (i.e., frozen).
+        boolean isFirstRound = true;
         for (double temperature = minCost * INIT_TEMPERATURE_PARAMETER; temperature > END_TEMPERATURE; temperature *= ALPHA) {
             Operator initPlan = minPlan;
             int initCost = minCost;
 
             // Performs a random restart for more randomness (except for the 1st round).
-            if (temperature < minCost * INIT_TEMPERATURE_PARAMETER) {
+            if (!isFirstRound) {
                 initPlan = rip.prepareInitialPlan();
                 Transformations.modifySchema(initPlan);
                 initCost = printPlanCostInfo("Initial Plan", initPlan);
             }
+            isFirstRound = false;
 
             // Continues until we reach equilibrium.
             for (int i = 0; i < 8 * numOfJoin; i++) {
