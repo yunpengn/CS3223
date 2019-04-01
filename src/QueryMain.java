@@ -10,8 +10,8 @@ import java.io.PrintWriter;
 import qp.operators.Debug;
 import qp.operators.Operator;
 import qp.optimizer.BufferManager;
-import qp.optimizer.RandomII;
 import qp.optimizer.RandomOptimizer;
+import qp.optimizer.RandomSA;
 import qp.parser.Scanner;
 import qp.parser.parser;
 import qp.utils.Attribute;
@@ -111,21 +111,8 @@ public class QueryMain {
             System.exit(1);
         }
 
-        /*
-         * This part is used when some random initial plan is required instead of a
-         * completely optimized plan.
-         */
-        // TODO: uncomment this part after we implemented the randomized algorithm.
-        // RandomInitialPlan rip = new RandomInitialPlan(sqlQuery);
-        // Operator logicalRoot = rip.prepareInitialPlan();
-        // PlanCost pc = new PlanCost();
-        // int initCost = pc.getCost(logicalRoot);
-        // Debug.PPrint(logicalRoot);
-        // System.out.print("   " + initCost);
-        // System.out.println();
-
         // Uses random Optimization algorithm to get a random optimized execution plan.
-        RandomOptimizer randomOptimizer = new RandomII(sqlQuery);
+        RandomOptimizer randomOptimizer = new RandomSA(sqlQuery);
         Operator logicalRoot = randomOptimizer.getOptimizedPlan();
         if (logicalRoot == null) {
             System.out.println("root is null");

@@ -24,4 +24,13 @@ public class RandomNum {
     public static boolean flipCoin() {
         return Math.random() < 0.5;
     }
+
+    /**
+     * Generates a random double-precision floating-point number, in the range of [0, 1).
+     *
+     * @return the random number generated.
+     */
+    public static double randDouble() {
+        return Math.random();
+    }
 }
