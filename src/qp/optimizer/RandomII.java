@@ -17,7 +17,7 @@ public class RandomII extends RandomOptimizer {
     }
 
     /**
-     * Implements Iterative Improvement Algorithm or Randomized optimization of Query Plan.
+     * Implements an iterative improvement algorithm for query plan.
      *
      * @return the optimized plan.
      */
