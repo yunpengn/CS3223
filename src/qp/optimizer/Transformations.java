@@ -2,6 +2,7 @@ package qp.optimizer;
 
 import java.util.Vector;
 
+import qp.operators.Distinct;
 import qp.operators.Join;
 import qp.operators.JoinType;
 import qp.operators.OpType;
@@ -230,24 +231,33 @@ class Transformations {
      * @param node is the query plan.
      */
     static void modifySchema(Operator node) {
-        if (node.getOpType() == OpType.JOIN) {
-            Operator left = ((Join) node).getLeft();
-            Operator right = ((Join) node).getRight();
+        Operator base;
 
-            modifySchema(left);
-            modifySchema(right);
-            node.setSchema(left.getSchema().joinWith(right.getSchema()));
-        } else if (node.getOpType() == OpType.SELECT) {
-            Operator base = ((Select) node).getBase();
+        switch (node.getOpType()) {
+            case OpType.JOIN:
+                Operator left = ((Join) node).getLeft();
+                Operator right = ((Join) node).getRight();
 
-            modifySchema(base);
-            node.setSchema(base.getSchema());
-        } else if (node.getOpType() == OpType.PROJECT) {
-            Operator base = ((Project) node).getBase();
-            Vector attrList = ((Project) node).getProjectAttr();
-
-            modifySchema(base);
-            node.setSchema(base.getSchema().subSchema(attrList));
+                modifySchema(left);
+                modifySchema(right);
+                node.setSchema(left.getSchema().joinWith(right.getSchema()));
+                break;
+            case OpType.SELECT:
+                base = ((Select) node).getBase();
+                modifySchema(base);
+                node.setSchema(base.getSchema());
+                break;
+            case OpType.PROJECT:
+                base = ((Project) node).getBase();
+                Vector attrList = ((Project) node).getProjectAttr();
+                modifySchema(base);
+                node.setSchema(base.getSchema().subSchema(attrList));
+                break;
+            case OpType.DISTINCT:
+                base = ((Distinct) node).getBase();
+                modifySchema(base);
+                node.setSchema(base.getSchema());
+                break;
         }
     }
 }
