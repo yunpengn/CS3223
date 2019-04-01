@@ -57,7 +57,8 @@ public class RandomSA extends RandomOptimizer {
 
             // Continues until we reach equilibrium.
             for (int i = 0; i < 8 * numOfJoin; i++) {
-                Operator currentPlan = getNeighbor(initPlan);
+                Operator initPlanCopy = (Operator) initPlan.clone();
+                Operator currentPlan = getNeighbor(initPlanCopy);
                 int currentCost = printPlanCostInfo("Neighbor", currentPlan);
 
                 if (currentCost <= initCost || judge(temperature, currentCost, initCost)) {
