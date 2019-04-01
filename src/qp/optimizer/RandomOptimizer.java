@@ -86,12 +86,7 @@ public class RandomOptimizer {
         Operator finalPlan = null;
 
         // The number of times of random restart.
-        int numOfRestart;
-        if (numOfJoin != 0) {
-            numOfRestart = 2 * numOfJoin;
-        } else {
-            numOfRestart = 1;
-        }
+        int numOfRestart = Math.max(2 * numOfJoin, 1);
 
         // Randomly restarts the gradient descent until the maximum specified number
         // of random restarts (numOfRestart) has satisfied.
