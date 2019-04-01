@@ -8,6 +8,7 @@ import qp.utils.SQLQuery;
  * Defines a randomized query optimizer using the Simulated Annealing (SA) algorithm.
  */
 public class RandomSA extends RandomOptimizer {
+    private static final int INIT_TEMPERATURE_PARAMETER = 2;
     private static final double END_TEMPERATURE = 1;
     private static final double ALPHA = 0.85;
 
@@ -34,7 +35,7 @@ public class RandomSA extends RandomOptimizer {
         // The current & final plan.
         Operator minPlan = rip.prepareInitialPlan();
         Transformations.modifySchema(minPlan);
-        int minCost = Integer.MAX_VALUE;
+        int minCost = printPlanCostInfo("Initial Plan", minPlan);
 
         // Premature exits if there is no join in the query.
         if (numOfJoin == 0) {
@@ -43,10 +44,16 @@ public class RandomSA extends RandomOptimizer {
         }
 
         // Continues until the temperature has dropped below a certain threshold (i.e., frozen).
-        for (double temperature = numOfJoin * 3; temperature > END_TEMPERATURE; temperature *= ALPHA) {
-            Operator initPlan = rip.prepareInitialPlan();
-            Transformations.modifySchema(minPlan);
-            int initCost = printPlanCostInfo("Initial Plan", initPlan);
+        for (double temperature = minCost * INIT_TEMPERATURE_PARAMETER; temperature > END_TEMPERATURE; temperature *= ALPHA) {
+            Operator initPlan = minPlan;
+            int initCost = minCost;
+
+            // Performs a random restart for more randomness (except for the 1st round).
+            if (temperature < minCost * INIT_TEMPERATURE_PARAMETER) {
+                initPlan = rip.prepareInitialPlan();
+                Transformations.modifySchema(initPlan);
+                initCost = printPlanCostInfo("Initial Plan", initPlan);
+            }
 
             // Continues until we reach equilibrium.
             for (int i = 0; i < 8 * numOfJoin; i++) {
