@@ -30,8 +30,15 @@ public class RandomII extends RandomOptimizer {
         Operator finalPlan = null;
         int finalCost = Integer.MAX_VALUE;
 
+        // Premature exits if there is no join in the query.
+        if (numOfJoin == 0) {
+            finalPlan = rip.prepareInitialPlan();
+            printPlanCostInfo("Final Plan", finalPlan);
+            return finalPlan;
+        }
+
         // Randomly restarts the gradient descent algorithm for a specified number of times.
-        for (int j = 0; j < Math.max(2 * numOfJoin, 1); j++) {
+        for (int j = 0; j < 2 * numOfJoin; j++) {
             Operator initPlan = rip.prepareInitialPlan();
             Transformations.modifySchema(initPlan);
             int initCost = printPlanCostInfo("Initial Plan", initPlan);
@@ -43,39 +50,34 @@ public class RandomII extends RandomOptimizer {
             Operator minNeighborPlan = initPlan;
             int minNeighborCost = initCost;
 
-            if (numOfJoin != 0) {
-                while (flag) {
-                    System.out.println("---------------while--------");
-
+            while (flag) {
+                System.out.println("---------------while---------------");
+                // In this loop we consider from the possible neighbors (randomly selected)
+                // and take the minimum among for next step.
+                for (int i = 0; i < 2 * numOfJoin; i++) {
                     Operator initPlanCopy = (Operator) initPlan.clone();
-                    minNeighborPlan = getNeighbor(initPlanCopy);
-                    minNeighborCost = printPlanCostInfo("Neighbor", minNeighborPlan);
+                    Operator neighbor = getNeighbor(initPlanCopy);
+                    int neighborCost = printPlanCostInfo("Neighbor", neighbor);
 
-                    // In this loop we consider from the possible neighbors (randomly selected)
-                    // and take the minimum among for next step.
-                    for (int i = 1; i < 2 * numOfJoin; i++) {
-                        initPlanCopy = (Operator) initPlan.clone();
-                        Operator neighbor = getNeighbor(initPlanCopy);
-                        int neighborCost = printPlanCostInfo("Neighbor", neighbor);
-
-                        if (neighborCost < minNeighborCost) {
-                            minNeighborPlan = neighbor;
-                            minNeighborCost = neighborCost;
-                        }
-                    }
-                    if (minNeighborCost < initCost) {
-                        initPlan = minNeighborPlan;
-                        initCost = minNeighborCost;
-                    } else {
-                        minNeighborPlan = initPlan;
-                        minNeighborCost = initCost;
-
-                        // Reaches local minimum.
-                        flag = false;
+                    if (neighborCost < minNeighborCost) {
+                        minNeighborPlan = neighbor;
+                        minNeighborCost = neighborCost;
                     }
                 }
-                printPlanCostInfo("Local Minimum", minNeighborPlan, minNeighborCost);
+
+                if (minNeighborCost < initCost) {
+                    initPlan = minNeighborPlan;
+                    initCost = minNeighborCost;
+                } else {
+                    minNeighborPlan = initPlan;
+                    minNeighborCost = initCost;
+
+                    // Reaches local minimum.
+                    flag = false;
+                }
             }
+
+            printPlanCostInfo("Local Minimum", minNeighborPlan, minNeighborCost);
             if (minNeighborCost < finalCost) {
                 finalCost = minNeighborCost;
                 finalPlan = minNeighborPlan;
