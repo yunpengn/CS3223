@@ -7,6 +7,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import qp.operators.Distinct;
+import qp.operators.Groupby;
 import qp.operators.Join;
 import qp.operators.JoinType;
 import qp.operators.OpType;
@@ -55,10 +56,11 @@ public class RandomInitialPlan {
     Operator prepareInitialPlan() {
         tableNameToOperator = new Hashtable<>();
 
-        // Follows the execution order: SCAN -> WHERE -> JOIN -> PROJECT -> DISTINCT.
+        // Follows the execution order: SCAN -> WHERE -> JOIN -> GROUPBY -> PROJECT -> DISTINCT.
         createScanOperators();
         createSelectOperators();
         createJoinOperators();
+        createGroupbyOperator();
         createProjectOperator();
         createDistinctOperator();
 
@@ -194,6 +196,17 @@ public class RandomInitialPlan {
         Distinct operator = new Distinct(root, sqlQuery.getProjectList());
         operator.setSchema(root.getSchema());
         root = operator;
+    }
+
+    /**
+     * Creates a groupby operator.
+     */
+    private void createGroupbyOperator() {
+        if (sqlQuery.isGroupby()) {
+            Groupby operator = new Groupby(root, sqlQuery.getGroupByList());
+            operator.setSchema(root.getSchema());
+            root = operator;
+        }
     }
 
     /**
