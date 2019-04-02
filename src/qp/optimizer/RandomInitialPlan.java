@@ -60,7 +60,7 @@ public class RandomInitialPlan {
         createScanOperators();
         createSelectOperators();
         createJoinOperators();
-        createBroupbyOperator();
+        createGroupbyOperator();
         createProjectOperator();
         createDistinctOperator();
 
@@ -201,7 +201,7 @@ public class RandomInitialPlan {
     /**
      * Creates a groupby operator.
      */
-    private void createBroupbyOperator() {
+    private void createGroupbyOperator() {
         if (sqlQuery.isGroupby()) {
             Groupby operator = new Groupby(root, sqlQuery.getGroupByList());
             operator.setSchema(root.getSchema());
