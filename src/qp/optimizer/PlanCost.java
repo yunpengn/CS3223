@@ -302,7 +302,8 @@ public class PlanCost {
      * @return the number of tuples after DISTINCT.
      */
     private int getStatistics(Distinct node) {
-        return calculateCost(node.getBase());
+        // TODO: calculates the number of distinct tuples here for output.
+        return getSort(node.getBase());
     }
 
     /**
@@ -312,7 +313,20 @@ public class PlanCost {
      * @return the number of tuples after GROUP_BY.
      */
     private int getStatistics(Groupby node) {
-        return calculateCost(node.getBase());
+        return getSort(node.getBase());
+    }
+
+    private int getSort(Operator base) {
+        // Calculates the input statistics.
+        int numOfInTuples = calculateCost(base);
+        int inCapacity = Batch.getPageSize() / base.getSchema().getTupleSize();
+        int numOfInPages = (int) Math.ceil(1.0 * numOfInTuples / inCapacity);
+
+        // Calculates the external sort cost.
+        int numOfBuffer = BufferManager.getBuffersPerJoin();
+        cost += getExternalSortCost(numOfInPages, numOfBuffer);
+
+        return numOfInTuples;
     }
 
     /**
