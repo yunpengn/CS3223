@@ -155,4 +155,11 @@ public class SQLQuery {
     public boolean getIsDistinct() {
         return this.isDistinct;
     }
+
+    /**
+     * @return whether GROUPBY is present in the query.
+     */
+    public boolean isGroupby() {
+        return groupByList != null && !groupByList.isEmpty();
+    }
 }

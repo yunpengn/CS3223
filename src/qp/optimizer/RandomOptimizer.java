@@ -5,6 +5,7 @@ import java.util.Vector;
 import qp.operators.BlockNestedJoin;
 import qp.operators.Debug;
 import qp.operators.Distinct;
+import qp.operators.Groupby;
 import qp.operators.Join;
 import qp.operators.JoinType;
 import qp.operators.OpType;
@@ -149,6 +150,12 @@ public abstract class RandomOptimizer {
             return node;
         } else if (node.getOpType() == OpType.DISTINCT) {
             Distinct operator = (Distinct) node;
+            operator.setNumOfBuffer(numOfBuff);
+            Operator base = makeExecPlan(operator.getBase());
+            operator.setBase(base);
+            return node;
+        } else if (node.getOpType() == OpType.GROUPBY) {
+            Groupby operator = (Groupby) node;
             operator.setNumOfBuffer(numOfBuff);
             Operator base = makeExecPlan(operator.getBase());
             operator.setBase(base);

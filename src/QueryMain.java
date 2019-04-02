@@ -88,7 +88,7 @@ public class QueryMain {
          * the plan. As buffer manager is not implemented, just input the number of buffers
          * available.
          */
-        if (numOfJoin != 0 || sqlQuery.getIsDistinct()) {
+        if (numOfJoin != 0 || sqlQuery.getIsDistinct() || sqlQuery.isGroupby()) {
             System.out.println("enter the number of buffers available");
 
             try {

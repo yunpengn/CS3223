@@ -3,6 +3,7 @@ package qp.optimizer;
 import java.util.Vector;
 
 import qp.operators.Distinct;
+import qp.operators.Groupby;
 import qp.operators.Join;
 import qp.operators.JoinType;
 import qp.operators.OpType;
@@ -255,6 +256,11 @@ class Transformations {
                 break;
             case OpType.DISTINCT:
                 base = ((Distinct) node).getBase();
+                modifySchema(base);
+                node.setSchema(base.getSchema());
+                break;
+            case OpType.GROUPBY:
+                base = ((Groupby) node).getBase();
                 modifySchema(base);
                 node.setSchema(base.getSchema());
                 break;
