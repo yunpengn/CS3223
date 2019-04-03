@@ -7,8 +7,9 @@ import qp.utils.SQLQuery;
  * Defines a randomized query optimizer using the Iterative Improvement (II) algorithm.
  */
 public class RandomII extends RandomOptimizer {
+    private static final int MAX_LOCAL_OPTIMIZATIONS = 5;
     /**
-     * Constructor of RandomOptimizer.
+     * Constructor of RandomII.
      *
      * @param sqlQuery is the SQL query to be optimized.
      */
@@ -37,8 +38,11 @@ public class RandomII extends RandomOptimizer {
             return finalPlan;
         }
 
+        // Number of local optimizations performed.
+        int localOptCount = 0;
+
         // Randomly restarts the gradient descent algorithm for a specified number of times.
-        for (int j = 0; j < 2 * numOfJoin; j++) {
+        for (int j = 0; j < 2 * numOfJoin || localOptCount < MAX_LOCAL_OPTIMIZATIONS; j++) {
             Operator initPlan = rip.prepareInitialPlan();
             Transformations.modifySchema(initPlan);
             int initCost = printPlanCostInfo("Initial Plan", initPlan);
@@ -78,6 +82,7 @@ public class RandomII extends RandomOptimizer {
             if (initCost < finalCost) {
                 finalPlan = initPlan;
                 finalCost = initCost;
+                localOptCount++;
             }
         }
 

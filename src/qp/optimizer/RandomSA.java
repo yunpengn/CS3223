@@ -8,11 +8,11 @@ import qp.utils.SQLQuery;
  * Defines a randomized query optimizer using the Simulated Annealing (SA) algorithm.
  */
 public class RandomSA extends RandomOptimizer {
-    private static final int INIT_TEMPERATURE_PARAMETER = 2;
     private static final double END_TEMPERATURE = 1;
     private static final double ALPHA = 0.85;
 
     private Operator initialPlan;
+    private final double initialTempParam;
 
     /**
      * Constructor of RandomSA.
@@ -21,6 +21,7 @@ public class RandomSA extends RandomOptimizer {
      */
     public RandomSA(SQLQuery sqlQuery) {
         super(sqlQuery);
+        initialTempParam = 2;
     }
 
     /**
@@ -32,6 +33,7 @@ public class RandomSA extends RandomOptimizer {
     public RandomSA(SQLQuery sqlQuery, Operator initialPlan) {
         super(sqlQuery);
         this.initialPlan = initialPlan;
+        initialTempParam = 0.4;
     }
 
     /**
@@ -63,7 +65,7 @@ public class RandomSA extends RandomOptimizer {
 
         // Continues until the temperature has dropped below a certain threshold (i.e., frozen).
         boolean isFirstRound = true;
-        for (double temperature = minCost * INIT_TEMPERATURE_PARAMETER; temperature > END_TEMPERATURE; temperature *= ALPHA) {
+        for (double temperature = minCost * initialTempParam; temperature > END_TEMPERATURE; temperature *= ALPHA) {
             Operator initPlan = minPlan;
             int initCost = minCost;
 
