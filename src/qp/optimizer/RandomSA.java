@@ -12,13 +12,26 @@ public class RandomSA extends RandomOptimizer {
     private static final double END_TEMPERATURE = 1;
     private static final double ALPHA = 0.85;
 
+    private Operator initialPlan;
+
     /**
-     * Constructor of RandomOptimizer.
+     * Constructor of RandomSA.
      *
      * @param sqlQuery is the SQL query to be optimized.
      */
     public RandomSA(SQLQuery sqlQuery) {
         super(sqlQuery);
+    }
+
+    /**
+     * Constructor of RandomSA.
+     *
+     * @param sqlQuery    is the SQL query to be optimized.
+     * @param initialPlan is the initial plan.
+     */
+    public RandomSA(SQLQuery sqlQuery, Operator initialPlan) {
+        super(sqlQuery);
+        this.initialPlan = initialPlan;
     }
 
     /**
@@ -28,12 +41,17 @@ public class RandomSA extends RandomOptimizer {
      */
     @Override
     public Operator getOptimizedPlan() {
-        // Gets an initial plan for the given sql query.
+        // Gets the number of joins in the query.
         RandomInitialPlan rip = new RandomInitialPlan(sqlQuery);
         numOfJoin = rip.getNumJoins();
 
+        // Gets a random initial plan if no initial plan is provided.
+        if (initialPlan == null) {
+            initialPlan = rip.prepareInitialPlan();
+        }
+
         // The current & final plan.
-        Operator minPlan = rip.prepareInitialPlan();
+        Operator minPlan = initialPlan;
         Transformations.modifySchema(minPlan);
         int minCost = printPlanCostInfo("Initial Plan", minPlan);
 
@@ -88,8 +106,8 @@ public class RandomSA extends RandomOptimizer {
      * Judges whether we accept this uphill move according to the annealing probability function.
      *
      * @param temperature is the current annealing temperature.
-     * @param value1 is the first value.
-     * @param value2 is the second value.
+     * @param value1      is the first value.
+     * @param value2      is the second value.
      * @return true if we should accept this move.
      */
     private boolean judge(double temperature, int value1, int value2) {
