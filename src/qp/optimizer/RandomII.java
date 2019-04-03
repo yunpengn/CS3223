@@ -42,7 +42,7 @@ public class RandomII extends RandomOptimizer {
         int localOptCount = 0;
 
         // Randomly restarts the gradient descent algorithm for a specified number of times.
-        for (int j = 0; j < 2 * numOfJoin || localOptCount < MAX_LOCAL_OPTIMIZATIONS; j++) {
+        for (int j = 0; j < 2 * numOfJoin && localOptCount < MAX_LOCAL_OPTIMIZATIONS; j++) {
             Operator initPlan = rip.prepareInitialPlan();
             Transformations.modifySchema(initPlan);
             int initCost = printPlanCostInfo("Initial Plan", initPlan);
