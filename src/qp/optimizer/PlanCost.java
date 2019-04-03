@@ -236,7 +236,7 @@ public class PlanCost {
         try {
             in = new BufferedReader(new FileReader(fileName));
         } catch (IOException io) {
-            System.out.printf("PlanCost: error in opening file with name %s due to %s\n", fileName, io.toString());
+            System.err.printf("PlanCost: error in opening file with name %s due to %s\n", fileName, io.toString());
             System.exit(1);
         }
         String line = null;
@@ -245,14 +245,13 @@ public class PlanCost {
         try {
             line = in.readLine();
         } catch (IOException io) {
-            System.out.printf("PlanCost: error in reading first line of file with name %s due to %s\n", fileName, io.toString());
+            System.err.printf("PlanCost: error in reading first line of file with name %s due to %s\n", fileName, io.toString());
             System.exit(1);
         }
 
         StringTokenizer tokenizer = new StringTokenizer(line);
         if (tokenizer.countTokens() != 1) {
-            System.err.println("");
-            System.out.println("incorrect format of statistics file " + fileName);
+            System.err.printf("PlanCost: incorrect format of statistics file with name %s", fileName);
             System.exit(1);
         }
         String temp = tokenizer.nextToken();
