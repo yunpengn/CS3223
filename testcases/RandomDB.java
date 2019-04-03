@@ -129,7 +129,7 @@ public class RandomDB {
 
 
                 if (typeOfKey != -1) {
-                    currentAttr = new Attribute(tblName, colName, type);//,typeOfKey,numOfBytes);
+                    currentAttr = new Attribute(tblName, colName, type);
                 } else {
                     currentAttr = new Attribute(tblName, colName, type, typeOfKey);
                 }
@@ -149,14 +149,7 @@ public class RandomDB {
             for (i = 0; i < numOfTuples; i++) {
                 System.out.println("input table generation: " + i);
 
-                int numb = random.nextInt(range[0]);
-                while (pk[numb]) {
-                    numb = random.nextInt(range[0]);
-                }
-                pk[numb] = true;
-                outData.print(numb + "\t");
-
-                for (int j = 1; j < numCol; j++) {
+                for (int j = 0; j < numCol; j++) {
                     switch (dataType[j]) {
                         case "STRING":
                             outData.print(rdb.randString(range[j]) + "\t");
@@ -166,10 +159,20 @@ public class RandomDB {
                             break;
                         case "INTEGER":
                             int value = random.nextInt(range[j]);
-                            outData.print(value + "\t");
+
+                            // PK does not allow duplicates.
+                            if (attrList.elementAt(j).isPrimaryKey()) {
+                                while (pk[value]) {
+                                    value = random.nextInt(range[j]);
+                                }
+                                pk[value] = true;
+                            }
+                            // FK allows duplicates.
                             if (keyType[j].equals("FK")) {
                                 fk[value] = true;
                             }
+
+                            outData.print(value + "\t");
                             break;
                     }
                 }
