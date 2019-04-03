@@ -161,7 +161,7 @@ public class RandomDB {
                             int value = random.nextInt(range[j]);
 
                             // PK does not allow duplicates.
-                            if (attrList.elementAt(j).isPrimaryKey()) {
+                            if (keyType[i].equals("PK")) {
                                 while (pk[value]) {
                                     value = random.nextInt(range[j]);
                                 }
