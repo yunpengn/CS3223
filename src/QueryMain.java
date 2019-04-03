@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import qp.operators.Debug;
 import qp.operators.Operator;
 import qp.optimizer.BufferManager;
+import qp.optimizer.RandomII;
 import qp.optimizer.RandomOptimizer;
 import qp.optimizer.RandomSA;
 import qp.parser.Scanner;
@@ -112,8 +113,11 @@ public class QueryMain {
         }
 
         // Uses random Optimization algorithm to get a random optimized execution plan.
-        RandomOptimizer randomOptimizer = new RandomSA(sqlQuery);
-        Operator logicalRoot = randomOptimizer.getOptimizedPlan();
+        RandomOptimizer iiOptimizer = new RandomII(sqlQuery);
+        Operator logicalRoot = iiOptimizer.getOptimizedPlan();
+        RandomOptimizer saOptimizer = new RandomSA(sqlQuery, logicalRoot);
+        logicalRoot = saOptimizer.getOptimizedPlan();
+
         if (logicalRoot == null) {
             System.out.println("root is null");
             System.exit(1);
