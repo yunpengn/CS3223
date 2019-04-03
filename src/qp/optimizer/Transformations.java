@@ -63,8 +63,6 @@ class Transformations {
 
         // Flips the condition. i.e.,  A X a1b1 B = B X b1a1 A
         node.getCondition().flip();
-        // Schema newschem = left.getSchema().joinWith(right.getSchema());
-        // node.setSchema(newschem);
 
         // Modifies the schema before returning the root.
         modifySchema(root);

@@ -94,7 +94,7 @@ public class Groupby extends Operator {
             newGroupbyList.add(attribute);
         }
 
-        Groupby newGroupby = new Groupby(base, newGroupbyList);
+        Groupby newGroupby = new Groupby(newBase, newGroupbyList);
         Schema newSchema = newBase.getSchema();
         newGroupby.setSchema(newSchema);
         return newGroupby;
