@@ -261,7 +261,7 @@ public class PlanCost {
         try {
             line = in.readLine();
         } catch (IOException io) {
-            System.out.println("error in reading second line of " + fileName);
+            System.err.printf("PlanCost: rror in reading second line of file with name %s", fileName);
             System.exit(1);
         }
         tokenizer = new StringTokenizer(line);
