@@ -51,6 +51,7 @@ public class RandomSA extends RandomOptimizer {
 
             // Performs a random restart for more randomness (except for the 1st round).
             if (!isFirstRound) {
+                System.out.println("\n====================================================================================================");
                 initPlan = rip.prepareInitialPlan();
                 Transformations.modifySchema(initPlan);
                 initCost = printPlanCostInfo("Initial Plan", initPlan);
@@ -64,6 +65,7 @@ public class RandomSA extends RandomOptimizer {
                 int currentCost = printPlanCostInfo("Neighbor", currentPlan);
 
                 if (currentCost <= initCost || judge(temperature, currentCost, initCost)) {
+                    System.out.printf("Switched to another plan, initCost changes from %d to %d\n", initCost, currentCost);
                     initPlan = currentPlan;
                     initCost = currentCost;
                 }
@@ -72,6 +74,7 @@ public class RandomSA extends RandomOptimizer {
             // Tries to update the global optimal solution if necessary.
             printPlanCostInfo("Local Minimum", initPlan, initCost);
             if (initCost < minCost) {
+                System.out.printf("Applied minimum from the current round, minCost changes from %d to %d\n", minCost, initCost);
                 minPlan = initPlan;
                 minCost = initCost;
             }

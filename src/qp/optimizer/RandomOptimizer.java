@@ -188,7 +188,7 @@ public abstract class RandomOptimizer {
      * @param cost is the cost of this execution plan.
      */
     void printPlanCostInfo(String name, Operator plan, int cost) {
-        System.out.println("\n---------------------------" + name + "---------------------------");
+        System.out.println("---------------------------" + name + "---------------------------");
         Debug.PPrint(plan);
         System.out.println(" " + cost);
     }

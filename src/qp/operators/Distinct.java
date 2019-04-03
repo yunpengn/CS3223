@@ -145,7 +145,7 @@ public class Distinct extends Operator {
             newProjectList.add(attribute);
         }
 
-        Distinct newDistinct = new Distinct(base, newProjectList);
+        Distinct newDistinct = new Distinct(newBase, newProjectList);
         Schema newSchema = newBase.getSchema();
         newDistinct.setSchema(newSchema);
         return newDistinct;
