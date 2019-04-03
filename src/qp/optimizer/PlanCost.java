@@ -336,7 +336,7 @@ public class PlanCost {
      * @return the cost of this sorting process.
      */
     private int getExternalSortCost(int numOfPages, int numOfBuffer) {
-        int numOfSortedRuns = numOfPages / numOfBuffer;
+        int numOfSortedRuns = (int) Math.ceil(1.0 * numOfPages / numOfBuffer);
         int numOfPasses = (int) Math.ceil(Math.log(numOfSortedRuns) / Math.log(numOfBuffer - 1)) + 1;
         return 2 * numOfPages * numOfPasses;
     }
