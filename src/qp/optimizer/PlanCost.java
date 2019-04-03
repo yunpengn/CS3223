@@ -131,7 +131,7 @@ public class PlanCost {
 
         int minDistinct = Math.min(leftAttrDistNum, rightAttrDistNum);
         ht.put(leftJoinAttr, minDistinct);
-        ht.put(leftJoinAttr, minDistinct);
+        ht.put(rightJoinAttr, minDistinct);
 
         // Calculates the cost of the operation.
         int joinType = node.getJoinType();
