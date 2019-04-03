@@ -129,6 +129,16 @@ public class Debug {
                 PPrint(((Project) node).getBase());
                 System.out.print(")");
                 break;
+            case OpType.DISTINCT:
+                System.out.print("Distinct(");
+                PPrint(((Distinct) node).getBase());
+                System.out.print(")");
+                break;
+            case OpType.GROUPBY:
+                System.out.print("GroupBy(");
+                PPrint(((Groupby) node).getBase());
+                System.out.print(")");
+                break;
             case OpType.SCAN:
                 System.out.print(((Scan) node).getTableName());
                 break;
