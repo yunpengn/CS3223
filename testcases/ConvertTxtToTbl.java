@@ -5,6 +5,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.sql.Time;
+import java.util.Date;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -58,8 +60,11 @@ public class ConvertTxtToTbl {
                 String dataElement = tokenizer.nextToken();
                 switch (schema.typeOf(i)) {
                     case Attribute.INT:
-                    case Attribute.TIME:
                         data.add(Integer.valueOf(dataElement));
+                        break;
+                    case Attribute.TIME:
+                        int value = Integer.valueOf(dataElement);
+                        data.add(new Date((long) value));
                         break;
                     case Attribute.REAL:
                         data.add(Float.valueOf(dataElement));

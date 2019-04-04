@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.Date;
 
 import qp.operators.Debug;
 import qp.operators.Operator;
@@ -211,6 +212,8 @@ public class QueryMain {
                 out.print(((Integer) data).intValue() + "\t");
             } else if (data instanceof Float) {
                 out.print(((Float) data).floatValue() + "\t");
+            } else if (data instanceof Date) {
+                out.print(((Date) data).getTime() + "\t");
             } else {
                 out.print(((String) data) + "\t");
             }

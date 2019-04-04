@@ -1,6 +1,7 @@
 package qp.utils;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Vector;
 
 /**
@@ -97,6 +98,8 @@ public class Tuple implements Serializable {
             return ((String) leftValue).compareTo((String) rightValue);
         } else if (leftValue instanceof Float) {
             return ((Float) leftValue).compareTo((Float) rightValue);
+        } else if (leftValue instanceof Date) {
+            return ((Date) leftValue).compareTo((Date) rightValue);
         } else {
             System.out.println("Tuple: Unknown comparision of the tuples");
             System.exit(1);

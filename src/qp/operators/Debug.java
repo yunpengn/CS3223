@@ -1,5 +1,7 @@
 package qp.operators;
 
+import java.util.Date;
+
 import qp.utils.Attribute;
 import qp.utils.Batch;
 import qp.utils.Condition;
@@ -157,6 +159,8 @@ public class Debug {
                 System.out.print(((Integer) data).intValue() + "\t");
             } else if (data instanceof Float) {
                 System.out.print(((Float) data).floatValue() + "\t");
+            } else if (data instanceof Date) {
+                System.out.print(((Date) data).getTime() + "\t");
             } else {
                 System.out.print(((String) data) + "\t");
             }
