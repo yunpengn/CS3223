@@ -37,7 +37,7 @@ for file in *.det; do
         echo "Fixtures for table ${tableName} already exists!"
         continue
     fi
-    java RandomDB ${tableName} 100
+    java RandomDB ${tableName} 10000
     java ConvertTxtToTbl ${tableName}
     echo ""
 done
