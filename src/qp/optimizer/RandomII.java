@@ -86,7 +86,7 @@ public class RandomII extends RandomOptimizer {
             }
         }
 
-        printPlanCostInfo("Final Plan", finalPlan, finalCost);
+        printPlanCostInfo("Final Plan from II", finalPlan, finalCost);
         return finalPlan;
     }
 }

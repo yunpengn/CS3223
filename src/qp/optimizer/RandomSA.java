@@ -100,7 +100,7 @@ public class RandomSA extends RandomOptimizer {
             }
         }
 
-        printPlanCostInfo("Final Plan", minPlan, minCost);
+        printPlanCostInfo("Final Plan from SA", minPlan, minCost);
         return minPlan;
     }
 
