@@ -1,5 +1,6 @@
 package qp.operators;
 
+import java.util.Date;
 import java.util.Vector;
 
 import qp.utils.Attribute;
@@ -285,6 +286,8 @@ public class SortMergeJoin extends Join {
                 return ((String) value1).compareTo((String) value2);
             case Attribute.REAL:
                 return Float.compare((float) value1, (float) value2);
+            case Attribute.TIME:
+                return ((Date) value1).compareTo((Date) value2);
             default:
                 return 0;
         }

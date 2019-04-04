@@ -1,5 +1,7 @@
 package qp.operators;
 
+import java.util.Date;
+
 import qp.utils.Attribute;
 import qp.utils.Batch;
 import qp.utils.Condition;
@@ -222,6 +224,27 @@ public class Select extends Operator {
                 return srcVal != checkVal;
             } else {
                 System.out.println("Select: incorrect condition operator");
+            }
+        } else if (dataType == Attribute.TIME) {
+            Date srcVal = (Date) srcValue;
+            int checkMillis = Integer.parseInt(checkValue);
+            Date checkVal = new Date((long) checkMillis);
+            int comparisionResult = srcVal.compareTo(checkVal);
+
+            if (expressionType == Condition.LESS_THAN) {
+                return comparisionResult < 0;
+            } else if (expressionType == Condition.GREATER_THAN) {
+                return comparisionResult > 0;
+            } else if (expressionType == Condition.LTOE) {
+                return comparisionResult <= 0;
+            } else if (expressionType == Condition.GTOE) {
+                return comparisionResult >= 0;
+            } else if (expressionType == Condition.EQUAL) {
+                return comparisionResult == 0;
+            } else if (expressionType == Condition.NOTEQUAL) {
+                return comparisionResult != 0;
+            } else {
+                System.out.println("Select:incorrect condition operator");
             }
         }
         return false;
