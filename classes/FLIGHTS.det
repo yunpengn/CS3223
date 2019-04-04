@@ -1,6 +1,6 @@
 6
 88
-flno     INTEGER 200  PK 4
+flno     INTEGER 20000  PK 4
 from     STRING  10   NK 20
 to       STRING  10   NK 20
 distance INTEGER 8000 NK 4

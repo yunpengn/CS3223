@@ -1,6 +1,6 @@
 5
 100
-cid INTEGER 200 PK 4 
+cid INTEGER 20000 PK 4
 sex INTEGER 2 NK 4 
 firstname STRING 10 NK 20  
 lastname STRING 10 NK 20 
