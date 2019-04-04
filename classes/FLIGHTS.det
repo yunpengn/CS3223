@@ -1,5 +1,5 @@
 6
-88
+56
 flno     INTEGER 20000  PK 4
 from     STRING  10   NK 20
 to       STRING  10   NK 20
