@@ -79,7 +79,7 @@ public class RandomSA extends RandomOptimizer {
             isFirstRound = false;
 
             // Continues until we reach equilibrium.
-            for (int i = 0; i < 8 * numOfJoin; i++) {
+            for (int i = 0; i < 12 * numOfJoin; i++) {
                 Operator initPlanCopy = (Operator) initPlan.clone();
                 Operator currentPlan = getNeighbor(initPlanCopy);
                 int currentCost = printPlanCostInfo("Neighbor", currentPlan);
