@@ -1,6 +1,7 @@
 package qp.utils;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Defines some metadata about an attribute (i.e., a column).
@@ -202,6 +203,11 @@ public class Attribute implements Serializable {
         } else {
             return false;
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tableName, colName);
     }
 
     /**

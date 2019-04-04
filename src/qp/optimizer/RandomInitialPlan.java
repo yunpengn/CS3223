@@ -86,7 +86,7 @@ public class RandomInitialPlan {
                 operator.setSchema(schema);
                 inStream.close();
             } catch (Exception e) {
-                System.err.println("RandomInitialPlan: Error reading Schema of the table " + fileName);
+                System.err.printf("RandomInitialPlan: error reading schema of the table %s due to %s", fileName, e.toString());
                 System.exit(1);
             }
             tableNameToOperator.put(tableName, operator);

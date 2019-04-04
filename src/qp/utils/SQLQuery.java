@@ -1,5 +1,6 @@
 package qp.utils;
 
+import java.util.HashSet;
 import java.util.Vector;
 
 /**
@@ -35,7 +36,6 @@ public class SQLQuery {
         this.projectList = projectList;
         this.fromList = fromList;
         this.conditionList = conditionList;
-        this.groupByList = null;
         splitConditionList(conditionList);
     }
 
@@ -50,7 +50,6 @@ public class SQLQuery {
         this.projectList = projectList;
         this.fromList = fromList;
         this.conditionList = null;
-        this.groupByList = null;
         splitConditionList(new Vector());
     }
 
@@ -115,6 +114,22 @@ public class SQLQuery {
      * @param list is the groupBy list.
      */
     public void setGroupByList(Vector list) {
+        // Puts all groupBy attributes in a HashSet for faster retrieval.
+        HashSet<Attribute> groupBySet = new HashSet<>();
+        for (int i = 0; i < list.size(); i++) {
+            Attribute attr = (Attribute) list.elementAt(i);
+            groupBySet.add(attr);
+        }
+
+        // Checks whether each attribute in projectList is also in groupByList.
+        for (int i = 0; i < projectList.size(); i++) {
+            Attribute attr = (Attribute) projectList.elementAt(i);
+            if (!groupBySet.contains(attr)) {
+                System.err.printf("SQLQuery: attribute %s presented in project list, but not in groupBy list\n", attr.getColName());
+                System.exit(1);
+            }
+        }
+
         groupByList = list;
     }
 
