@@ -58,6 +58,7 @@ public class ConvertTxtToTbl {
                 String dataElement = tokenizer.nextToken();
                 switch (schema.typeOf(i)) {
                     case Attribute.INT:
+                    case Attribute.TIME:
                         data.add(Integer.valueOf(dataElement));
                         break;
                     case Attribute.REAL:

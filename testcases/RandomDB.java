@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.sql.Time;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -18,6 +19,8 @@ import qp.utils.Schema;
  * like <pre>XXXX.txt</pre>.
  */
 public class RandomDB {
+    private static final int MILLIS_IN_DAY = 24 * 60 * 60 * 1000;
+
     // A random generator with the current time as the seed.
     private static Random random;
     // An array of public keys
@@ -102,6 +105,8 @@ public class RandomDB {
                     type = Attribute.STRING;
                 } else if (dataType[i].equals("REAL")) {
                     type = Attribute.REAL;
+                } else if (dataType[i].equals("TIME")) {
+                    type = Attribute.TIME;
                 } else {
                     type = -1;
                     System.err.println("invalid getData type");
@@ -157,6 +162,9 @@ public class RandomDB {
                         case "FLOAT":
                             outData.print(range[j] * random.nextFloat() + "\t");
                             break;
+                        case "TIME":
+                            outData.print(random.nextInt(MILLIS_IN_DAY) + "\t");
+                            break;
                         case "INTEGER":
                             int value = random.nextInt(range[j]);
 
@@ -189,9 +197,8 @@ public class RandomDB {
             for (i = 0; i < numCol; i++) {
                 switch (dataType[i]) {
                     case "STRING":
-                        outStat.print(numOfTuples + "\t");
-                        break;
                     case "FLOAT":
+                    case "TIME":
                         outStat.print(numOfTuples + "\t");
                         break;
                     case "INTEGER":
