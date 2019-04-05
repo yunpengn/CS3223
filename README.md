@@ -8,11 +8,21 @@ National University of Singapore_**
 
 This project focuses on the implementation of a simple _SPJ (Select-Project-Join)_ query engine to illustrate how query processing works in modern database management systems (DBMS), specifically relational databases (RDBMS). More information about the project requirements can be found at [here](https://www.comp.nus.edu.sg/~tankl/cs3223/project.html).
 
-This repository presents our approach to this project. We are a team of 3 undergraduate students from the [National University of Singapore](http://www.nus.edu.sg), comprising of
+This repository presents our approach to this project. We are a team consisting of undergraduate students from the [National University of Singapore](http://www.nus.edu.sg), comprising of
 
 - [Niu Yunpeng](https://github.com/yunpengn)
 - [Sun Shengran](https://github.com/dalessr)
-- [Jia Zhixin](https://github.com/nusjzx)
+
+## Implementation Outline
+
+Based on the given [template](http://www.comp.nus.edu.sg/~tankl/cs3223/project/Component.tar.gz), we have implemented the following operators in this SPJ query engine:
+- Block Nested Loops Join (see [BlockNestedJoin.java](src/qp/operators/BlockNestedJoin.java))
+- Sort Merge join (see [SortMergeJoin.java](src/qp/operators/SortMergeJoin.java))
+- External sort (using k-way merge algorithm) (see [Sort.java](src/qp/operators/Sort.java))
+- `DISTINCT` operator (see [Distinct.java](src/qp/operators/Distinct.java))
+- `GROUP BY` operator (see [Groupby.java](src/qp/operators/Groupby.java))
+
+We have tried to follow the [Volcano iterator model](https://db.in.tum.de/~grust/teaching/ws0607/MMDBMS/DBMS-CPU-5.pdf) to implement the various operators. However, there does exist some operators (such as `Sort`) which are blocking and cannot use the iterator model.
 
 ## Setup Instructions
 
