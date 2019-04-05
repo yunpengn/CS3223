@@ -12,6 +12,7 @@ This repository presents our approach to this project. We are a team consisting 
 
 - [Niu Yunpeng](https://github.com/yunpengn)
 - [Sun Shengran](https://github.com/dalessr)
+- Jia Zhixin
 
 ## Implementation Outline
 
@@ -24,7 +25,7 @@ Based on the given [template](http://www.comp.nus.edu.sg/~tankl/cs3223/project/C
 
 We have tried to follow the [Volcano iterator model](https://db.in.tum.de/~grust/teaching/ws0607/MMDBMS/DBMS-CPU-5.pdf) to implement the various operators. However, there does exist some operators (such as `Sort`) which are blocking and cannot use the iterator model.
 
-In addition, we have implemented a new hybrid randomized operator (see [here](https://github.com/yunpengn/CS3223/blob/master/src/QueryMain.java#L117)), which consists of both the iterative improvement (II) algorithm (see [RandomII.java](src/qp/optimizer/RandomII.java)) and the simulated annealing (SA) algorithm (see [RandomSA.java](src/qp/optimizer/RandomSA.java)).
+In addition, we have implemented a new hybrid randomized operator (see [here](src/QueryMain.java#L117)), which consists of both the iterative improvement (II) algorithm (see [RandomII.java](src/qp/optimizer/RandomII.java)) and the simulated annealing (SA) algorithm (see [RandomSA.java](src/qp/optimizer/RandomSA.java)).
 
 ## Setup Instructions
 
