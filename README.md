@@ -6,7 +6,7 @@
 School of Computing<br>
 National University of Singapore_**
 
-This project focuses on the implementation of a simple _SPJ (Select-Project-Join)_ query engine to illustrate how query processing works in modern database management systems (DBMS), specifically relational databases (RDBMS). More information about the project requirements can be found at [here](https://www.comp.nus.edu.sg/~tankl/cs3223/project.html).
+This project focuses on the implementation of a simple _SPJ (Select-Project-Join)_ query engine to illustrate how query processing works in modern database management systems (DBMS), specifically relational databases (RDBMS). More information about the project requirements can be found at here.
 
 This repository presents our approach to this project. We are a team consisting of undergraduate students from the [National University of Singapore](http://www.nus.edu.sg), comprising of
 
@@ -70,7 +70,7 @@ In addition, we have implemented a new hybrid randomized operator (see [here](sr
 
 ## References
 
-- [CS3223 Module Website](https://www.comp.nus.edu.sg/~tankl/cs3223)
+- CS3223 Module Website
 - [JLex: A Lexical Analyzer Generator for Java](http://www.cs.princeton.edu/~appel/modern/java/JLex/)
 - [CUP: Parser Generator for Java](http://www.cs.princeton.edu/~appel/modern/java/CUP/)
 
