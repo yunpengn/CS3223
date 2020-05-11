@@ -16,7 +16,7 @@ This repository presents our approach to this project. We are a team consisting 
 
 ## Implementation Outline
 
-Based on the given [template](http://www.comp.nus.edu.sg/~tankl/cs3223/project/Component.tar.gz), we have implemented the following operators in this SPJ query engine:
+Based on the given template, we have implemented the following operators in this SPJ query engine:
 - Block Nested Loops Join (see [BlockNestedJoin.java](src/qp/operators/BlockNestedJoin.java))
 - Sort Merge join (see [SortMergeJoin.java](src/qp/operators/SortMergeJoin.java))
 - External sort (using k-way merge algorithm) (see [Sort.java](src/qp/operators/Sort.java))
