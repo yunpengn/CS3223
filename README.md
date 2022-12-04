@@ -1,5 +1,3 @@
-[![CI pipeline](https://github.com/yunpengn/CS3223/workflows/CI%20pipeline/badge.svg)](https://github.com/yunpengn/CS3223/actions)
-
 # CS3223 Database Systems Implementation Project
 
 **_AY2018/2019 Semester 2<br>
